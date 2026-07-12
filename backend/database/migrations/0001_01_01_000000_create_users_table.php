@@ -11,13 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+    Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('nik', 16)->unique()->nullable(); // Ditambahkan -> nullable() agar aman saat testing awal
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             
+            $table->string('phone_number')->nullable();
+            $table->enum('gender', ['pria', 'wanita'])->nullable();
             $table->enum('role', ['admin', 'user'])->default('user');
             
             $table->rememberToken();
