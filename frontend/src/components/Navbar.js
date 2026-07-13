@@ -75,6 +75,15 @@ function Navbar() {
                         <Link to="/admin/schedules" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/schedules')}>
                             Kelola Jadwal
                         </Link>
+                        <Link to="/admin/bookings" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/bookings')}>
+                            Kelola Transaksi
+                        </Link>
+                        <Link to="/admin/protections" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/protections')}>
+                            Kelola Proteksi
+                        </Link>
+                        <Link to="/admin/payment-methods" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/payment-methods')}>
+                            Kelola Pembayaran
+                        </Link>
                     </nav>
                 </div>
 

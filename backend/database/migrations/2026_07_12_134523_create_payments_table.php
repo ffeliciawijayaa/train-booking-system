@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained('bookings')->onDelete('cascade');
             
-            $table->string('payment_method'); // Misal: QRIS, VA_BCA
+            $table->string('payment_method')->nullable(); // Misal: QRIS, VA_BCA
             $table->enum('payment_status', ['pending', 'paid', 'failed', 'expired'])->default('pending');
             $table->dateTime('expired_at');
             $table->dateTime('paid_at')->nullable(); // Kosong sebelum dibayar

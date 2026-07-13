@@ -322,7 +322,11 @@ function PassengerSeatSelection() {
                                 <label className="text-xs font-bold text-slate-600">Pilih Gerbong:</label>
                                 <select 
                                     value={currentCoach} 
-                                    onChange={(e) => setCurrentCoach(parseInt(e.target.value))}
+                                    onChange={(e) => {
+                                        setCurrentCoach(parseInt(e.target.value));
+                                        // Reset kursi jika pindah gerbong karena 1 transaksi = 1 gerbong (saat ini)
+                                        setPassengers(passengers.map(p => ({ ...p, seat_number: '' })));
+                                    }}
                                     className="px-3 py-1.5 border rounded-lg text-xs font-semibold bg-white focus:outline-blue-500"
                                 >
                                     {Array.from({ length: totalCoaches }, (_, i) => (
@@ -360,7 +364,7 @@ function PassengerSeatSelection() {
                                                 const seatCode = `${rowNum}${letter}`;
                                                 
                                                 const isOccupied = occupiedSeats.some(
-                                                    (s) => s.coach_number === currentCoach && s.seat_number === seatCode
+                                                    (s) => parseInt(s.coach_number) === currentCoach && s.seat_number === seatCode
                                                 );
 
                                                 const selectedIndex = passengers.findIndex(p => p.seat_number === seatCode);

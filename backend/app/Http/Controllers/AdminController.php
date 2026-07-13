@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 class AdminController extends Controller
 {
     // API untuk mengambil semua data stasiun
-    public function indexStation()
+    public function getStation()
     {
         $stations = Station::orderBy('id', 'desc')->get();
         return response()->json([
@@ -22,7 +22,7 @@ class AdminController extends Controller
     }
 
     // API untuk mengambil semua data kereta
-    public function indexTrain()
+    public function getTrain()
     {
         $trains = Train::orderBy('id', 'desc')->get();
         return response()->json([
@@ -297,7 +297,7 @@ class AdminController extends Controller
         }
 
         // API untuk Menghapus Jadwal Beserta Semua Rute Transitnya
-        public function destroySchedule($id)
+        public function deleteSchedule($id)
         {
             try {
                 DB::beginTransaction();
@@ -330,7 +330,7 @@ class AdminController extends Controller
         }
 
         // 5. API untuk Hapus Data Stasiun
-        public function destroyStation($id)
+        public function deleteStation($id)
         {
             $station = Station::find($id);
             if (!$station) {
@@ -374,7 +374,7 @@ class AdminController extends Controller
         }
 
         // 7. API untuk Hapus Data Kereta
-        public function destroyTrain($id)
+        public function deleteTrain($id)
         {
             $train = Train::find($id);
             if (!$train) {
@@ -386,6 +386,185 @@ class AdminController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Armada kereta berhasil dihapus dari sistem!'
+            ]);
+        }
+
+        // =========================================================================
+        // PROTECTIONS (ASURANSI)
+        // =========================================================================
+
+        public function getProtection()
+        {
+            $protections = \App\Models\Protection::orderBy('id', 'desc')->get();
+            return response()->json([
+                'status' => 'success',
+                'data' => $protections
+            ]);
+        }
+
+        public function storeProtection(Request $request)
+        {
+            $request->validate([
+                'name' => 'required|string',
+                'description' => 'required|string',
+                'price' => 'required|numeric|min:0',
+                'is_active' => 'boolean'
+            ]);
+
+            $protection = \App\Models\Protection::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'price' => $request->price,
+                'is_active' => $request->is_active ?? true
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Proteksi berhasil ditambahkan!',
+                'data' => $protection
+            ], 201);
+        }
+
+        public function updateProtection(Request $request, $id)
+        {
+            $request->validate([
+                'name' => 'required|string',
+                'description' => 'required|string',
+                'price' => 'required|numeric|min:0',
+                'is_active' => 'boolean'
+            ]);
+
+            $protection = \App\Models\Protection::find($id);
+            if (!$protection) {
+                return response()->json(['status' => 'error', 'message' => 'Proteksi tidak ditemukan.'], 404);
+            }
+
+            $protection->update([
+                'name' => $request->name,
+                'description' => $request->description,
+                'price' => $request->price,
+                'is_active' => $request->is_active ?? true
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data proteksi berhasil diperbarui!',
+                'data' => $protection
+            ]);
+        }
+
+        public function deleteProtection($id)
+        {
+            $protection = \App\Models\Protection::find($id);
+            if (!$protection) {
+                return response()->json(['status' => 'error', 'message' => 'Proteksi tidak ditemukan.'], 404);
+            }
+
+            $protection->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Proteksi berhasil dihapus dari sistem!'
+            ]);
+        }
+
+        // =========================================================================
+        // PAYMENT METHODS (METODE PEMBAYARAN)
+        // =========================================================================
+
+        public function getPaymentMethod()
+        {
+            $methods = \App\Models\PaymentMethod::orderBy('id', 'desc')->get();
+            return response()->json([
+                'status' => 'success',
+                'data' => $methods
+            ]);
+        }
+
+        public function storePaymentMethod(Request $request)
+        {
+            $request->validate([
+                'name' => 'required|string',
+                'logo_url' => 'nullable|string',
+                'instructions' => 'nullable|string',
+                'is_active' => 'boolean'
+            ]);
+
+            $method = \App\Models\PaymentMethod::create([
+                'name' => $request->name,
+                'logo_url' => $request->logo_url,
+                'instructions' => $request->instructions,
+                'is_active' => $request->is_active ?? true
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Metode Pembayaran berhasil ditambahkan!',
+                'data' => $method
+            ], 201);
+        }
+
+        public function updatePaymentMethod(Request $request, $id)
+        {
+            $request->validate([
+                'name' => 'required|string',
+                'logo_url' => 'nullable|string',
+                'instructions' => 'nullable|string',
+                'is_active' => 'boolean'
+            ]);
+
+            $method = \App\Models\PaymentMethod::find($id);
+            if (!$method) {
+                return response()->json(['status' => 'error', 'message' => 'Metode Pembayaran tidak ditemukan.'], 404);
+            }
+
+            $method->update([
+                'name' => $request->name,
+                'logo_url' => $request->logo_url,
+                'instructions' => $request->instructions,
+                'is_active' => $request->is_active ?? true
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Metode Pembayaran berhasil diperbarui!',
+                'data' => $method
+            ]);
+        }
+
+        public function deletePaymentMethod($id)
+        {
+            $method = \App\Models\PaymentMethod::find($id);
+            if (!$method) {
+                return response()->json(['status' => 'error', 'message' => 'Metode Pembayaran tidak ditemukan.'], 404);
+            }
+
+            $method->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Metode Pembayaran berhasil dihapus dari sistem!'
+            ]);
+        }
+
+        // =========================================================================
+        // HISTORY TRANSAKSI / BOOKING HISTORY
+        // =========================================================================
+
+        public function getBookingHistory()
+        {
+            $bookings = \App\Models\Booking::with([
+                'user',
+                'schedule.train',
+                'boardStation',
+                'alightStation',
+                'bookingDetails',
+                'payment'
+            ])->orderBy('id', 'desc')->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $bookings
             ]);
         }
 }

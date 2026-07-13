@@ -19,7 +19,9 @@ class Booking extends Model
         'alight_order',
         'status',
         'total_price',
-        'booking_date'
+        'booking_date',
+        'protection_id',
+        'protection_price'
     ];
 
     // Relasi: Pesanan ini dibuat oleh user mana?
@@ -47,6 +49,12 @@ class Booking extends Model
     }
 
     // Relasi: Satu struk booking memiliki banyak detail penumpang di dalamnya
+    public function bookingDetails(): HasMany
+    {
+        return $this->hasMany(BookingDetail::class);
+    }
+    
+    // Alias untuk relasi details yang sudah ada (menghindari error jika dipanggil 'details')
     public function details(): HasMany
     {
         return $this->hasMany(BookingDetail::class);
@@ -56,5 +64,11 @@ class Booking extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    // Relasi: Booking memiliki satu perlindungan/asuransi opsional
+    public function protection(): BelongsTo
+    {
+        return $this->belongsTo(Protection::class);
     }
 }

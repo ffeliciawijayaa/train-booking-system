@@ -40,10 +40,18 @@ function UserDashboard() {
         setLoading(true);
         setHasSearched(true);
         try {
+            const token = localStorage.getItem('token');
             const response = await axios.post('http://127.0.0.1:8000/api/user/search-tickets', {
                 origin_id: originId,
                 destination_id: destinationId,
                 journey_date: journeyDate
+            }, {
+                headers: token ? { 
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json' 
+                } : {
+                    'Accept': 'application/json'
+                }
             });
             setTickets(response.data.data);
         } catch (error) {
@@ -62,13 +70,37 @@ function UserDashboard() {
                     <p className="text-sm text-blue-100 mt-1">Selamat datang, Penumpang! Cari tiket kereta apimu di sini.</p>
                 </div>
                 
-                {/* TOMBOL LOGOUT */}
-                <button 
-                    onClick={handleLogout}
-                    className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-bold shadow-md shadow-red-500/20 transition-all active:scale-95"
-                >
-                    Keluar
-                </button>
+                <div className="flex gap-2 sm:gap-3 flex-wrap justify-end">
+                    {localStorage.getItem('token') ? (
+                        <>
+                            <button 
+                                onClick={() => navigate('/profile')}
+                                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95 flex items-center gap-2"
+                            >
+                                <span>👤</span> Profil
+                            </button>
+                            <button 
+                                onClick={() => navigate('/my-tickets')}
+                                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95 flex items-center gap-2"
+                            >
+                                <span>🎫</span> Riwayat Tiket
+                            </button>
+                            <button 
+                                onClick={handleLogout}
+                                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-red-500/20 transition-all active:scale-95"
+                            >
+                                Keluar
+                            </button>
+                        </>
+                    ) : (
+                        <button 
+                            onClick={() => navigate('/login')}
+                            className="px-4 py-2 sm:px-5 sm:py-2.5 bg-white text-blue-600 hover:bg-blue-50 rounded-xl text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95 flex items-center gap-2"
+                        >
+                            Masuk / Daftar
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Grid Layout Utama */}
@@ -175,6 +207,11 @@ function UserDashboard() {
                                 </div>
                                 <button 
                                     onClick={() => {
+                                        if (!localStorage.getItem('token')) {
+                                            alert("Silakan masuk/login terlebih dahulu untuk memesan tiket.");
+                                            navigate('/login');
+                                            return;
+                                        }
                                         // Mengalihkan halaman ke rute booking sambil membawa query parameter rute penggaris
                                         navigate(`/booking/${ticket.schedule_id || ticket.id}?board_order=${ticket.board_order}&alight_order=${ticket.alight_order}&qty=${qty}`);
                                     }} 

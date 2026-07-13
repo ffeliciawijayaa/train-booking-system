@@ -21,6 +21,9 @@ Route::get('/schedules/{id}/detail', [TicketController::class, 'getScheduleDetai
 Route::get('/user/stations', [UserController::class, 'getStations']);
 Route::post('/user/search-tickets', [UserController::class, 'searchTickets']);
 
+// Rute Publik untuk Proteksi dan Metode Pembayaran
+Route::get('/protections', [UserController::class, 'getProtections']);
+Route::get('/payment-methods', [UserController::class, 'getPaymentMethods']);
 
 // ========================================================================
 
@@ -32,11 +35,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    
+    // Rute untuk update profil user
+    Route::put('/user/profile', [UserController::class, 'updateProfile']);
 
     // --- PROSES BOOKING DAN PEMBAYARAN (PINDAH KE SINI YA!) ---
     Route::post('/tickets/booking', [BookingController::class, 'store']);
     Route::get('/bookings/{id}', [BookingController::class, 'show']);
     Route::post('/bookings/{id}/pay', [BookingController::class, 'pay']);
+    Route::get('/bookings/{id}/ticket', [BookingController::class, 'ticket']);
+    
+    // --- RIWAYAT TIKET (MY TICKETS) ---
+    Route::get('/user/bookings', [UserController::class, 'getUserBookings']);
 });
 
 
@@ -45,18 +55,33 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // 3. RUTE KHUSUS ADMIN (Wajib login DAN rolenya harus admin)
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-    Route::get('/admin/stations', [AdminController::class, 'indexStation']);
+    Route::get('/admin/stations', [AdminController::class, 'getStation']);
     Route::post('/admin/stations', [AdminController::class, 'storeStation']);
     Route::put('/admin/stations/{id}', [AdminController::class, 'updateStation']);
-    Route::delete('/admin/stations/{id}', [AdminController::class, 'destroyStation']);
+    Route::delete('/admin/stations/{id}', [AdminController::class, 'deleteStation']);
 
-    Route::get('/admin/trains', [AdminController::class, 'indexTrain']);
+    Route::get('/admin/trains', [AdminController::class, 'getTrain']);
     Route::post('/admin/trains', [AdminController::class, 'storeTrain']);
     Route::put('/admin/trains/{id}', [AdminController::class, 'updateTrain']);
-    Route::delete('/admin/trains/{id}', [AdminController::class, 'destroyTrain']);
+    Route::delete('/admin/trains/{id}', [AdminController::class, 'deleteTrain']);
 
     Route::get('/admin/schedules', [AdminController::class, 'getSchedules']);
     Route::post('/admin/schedules', [AdminController::class, 'storeSchedule']);
     Route::put('admin/schedules/{id}', [AdminController::class, 'updateSchedule']);
-    Route::delete('/admin/schedules/{id}', [AdminController::class, 'destroySchedule']);
+    Route::delete('/admin/schedules/{id}', [AdminController::class, 'deleteSchedule']);
+
+    // Admin Protections
+    Route::get('/admin/protections', [AdminController::class, 'getProtection']);
+    Route::post('/admin/protections', [AdminController::class, 'storeProtection']);
+    Route::put('/admin/protections/{id}', [AdminController::class, 'updateProtection']);
+    Route::delete('/admin/protections/{id}', [AdminController::class, 'deleteProtection']);
+
+    // Admin Payment Methods
+    Route::get('/admin/payment-methods', [AdminController::class, 'getPaymentMethod']);
+    Route::post('/admin/payment-methods', [AdminController::class, 'storePaymentMethod']);
+    Route::put('/admin/payment-methods/{id}', [AdminController::class, 'updatePaymentMethod']);
+    Route::delete('/admin/payment-methods/{id}', [AdminController::class, 'deletePaymentMethod']);
+
+    // Admin Bookings (History Transaksi)
+    Route::get('/admin/bookings', [AdminController::class, 'getBookingHistory']);
 });

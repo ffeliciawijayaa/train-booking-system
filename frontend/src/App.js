@@ -9,6 +9,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Schedules from './pages/Schedules';
 import UserDashboard from './pages/UserDashboard';
 import PassengerSeatSelection from './pages/PassengerSeatSelection';
+import Payment from './pages/Payment';
+import MyTickets from './pages/MyTickets';
+import Profile from './pages/Profile';
+import AdminProtections from './pages/AdminProtections';
+import AdminPaymentMethods from './pages/AdminPaymentMethods';
+import AdminBookings from './pages/AdminBookings';
 
 function AdminLayout({ children }) {
   return (
@@ -26,20 +32,35 @@ function App() {
     <Router>
       <Routes>
         {/* ==================== 1. RUTE PUBLIK UMUM ==================== */}
+        <Route path="/" element={<Navigate to="/search" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Rute pencarian jadwal sekarang menjadi publik */}
+        <Route path="/search" element={<UserDashboard />} />
 
 
         {/* ==================== 2. RUTE KHUSUS USER / PENUMPANG ==================== */}
-        {/* Sekarang rute search diproteksi khusus untuk role 'user' */}
-        <Route path="/search" element={
+
+        <Route path="/booking/:scheduleId" element={<PassengerSeatSelection />} />
+        
+        <Route path="/payment/:bookingId" element={
           <ProtectedRoute allowedRole="user">
-            <UserDashboard />
+            <Payment />
           </ProtectedRoute>
         } />
 
-        <Route path="/booking/:scheduleId" element={<PassengerSeatSelection />} />
+        <Route path="/my-tickets" element={
+          <ProtectedRoute allowedRole="user">
+            <MyTickets />
+          </ProtectedRoute>
+        } />
 
+        <Route path="/profile" element={
+          <ProtectedRoute allowedRole="user">
+            <Profile />
+          </ProtectedRoute>
+        } />
 
         {/* ==================== 3. RUTE KHUSUS ADMIN ==================== */}
         {/* Ditambahkan allowedRole="admin" agar user biasa tidak bisa nembak ke sini */}
@@ -58,6 +79,24 @@ function App() {
         <Route path="/admin/schedules" element={
           <ProtectedRoute allowedRole="admin">
             <AdminLayout><Schedules /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/protections" element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminLayout><AdminProtections /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/bookings" element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminLayout><AdminBookings /></AdminLayout>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin/payment-methods" element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminLayout><AdminPaymentMethods /></AdminLayout>
           </ProtectedRoute>
         } />
 

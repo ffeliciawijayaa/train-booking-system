@@ -6,15 +6,37 @@ use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Payment;
 use App\Models\Schedule;
+use App\Models\Protection;
+use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BookingController extends Controller
 {
+    // =========================================================================
+    // 1. ENDPOINT MASTER DATA (Untuk dropdown/pilihan di Frontend)
+    // =========================================================================
+    
+    public function getPaymentMethods()
+    {
+        $methods = PaymentMethod::where('is_active', true)->get();
+        return response()->json(['status' => 'success', 'data' => $methods]);
+    }
+
+    public function getProtections()
+    {
+        $protections = Protection::where('is_active', true)->get();
+        return response()->json(['status' => 'success', 'data' => $protections]);
+    }
+
+    // =========================================================================
+    // 2. ENDPOINT TRANSAKSI UTAMA
+    // =========================================================================
+
     public function store(Request $request)
     {
-        // 1. Validasi input pesanan dengan struktur array passengers
+        // 1. Validasi input pesanan awal (Fokus pada data penumpang dan kursi saja)
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
             'departure_station_id' => 'required|exists:stations,id',
@@ -41,14 +63,10 @@ class BookingController extends Controller
 
         $userDepOrder = $depStop->stop_order;
         $userArrOrder = $arrStop->stop_order;
-
-        // Hitung harga per satu tiket
         $ticketPricePerPassenger = $arrStop->price_from_start - $depStop->price_from_start;
-
-        // Ekstrak semua nomor kursi yang dikirim dari frontend untuk divalidasi massal
         $seatNumbers = collect($request->passengers)->pluck('seat_number')->toArray();
 
-        // 3. PROTEKSI BENTROK: Cek apakah ada di antara kursi-kursi tersebut yang sudah terisi di rute irisan
+        // 3. PROTEKSI BENTROK
         $occupiedSeats = BookingDetail::join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
             ->where('bookings.schedule_id', $request->schedule_id)
             ->where('booking_details.coach_number', $request->coach_number)
@@ -61,7 +79,6 @@ class BookingController extends Controller
             ->pluck('booking_details.seat_number')
             ->toArray();
 
-        // Jika ada kursi yang bentrok, sebutkan nomor kursinya di response
         if (!empty($occupiedSeats)) {
             return response()->json([
                 'status' => 'error',
@@ -69,14 +86,39 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // Hitung total harga berdasarkan jumlah penumpang
+        // --- TAMBAHAN PROTEKSI NIK ---
+        $niks = collect($request->passengers)->pluck('nik')->toArray();
+        
+        // 1. Cek apakah ada NIK yang dobel di input saat ini
+        if (count($niks) !== count(array_unique($niks))) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terdapat NIK ganda pada formulir. 1 NIK hanya bisa digunakan 1 kali per perjalanan.'
+            ], 422);
+        }
+
+        // 2. Cek apakah NIK sudah pernah memesan jadwal yang sama dan belum dibatalkan
+        $duplicateNiks = BookingDetail::join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
+            ->where('bookings.schedule_id', $request->schedule_id)
+            ->whereIn('booking_details.passenger_nik', $niks)
+            ->whereIn('bookings.status', ['pending', 'completed'])
+            ->pluck('booking_details.passenger_nik')
+            ->toArray();
+
+        if (!empty($duplicateNiks)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'NIK berikut sudah terdaftar pada jadwal kereta ini: ' . implode(', ', array_unique($duplicateNiks)) . '. Satu NIK hanya boleh membeli tiket satu kali per jadwal.'
+            ], 422);
+        }
+        // -----------------------------
+
         $totalPassengers = count($request->passengers);
         $totalPrice = $ticketPricePerPassenger * $totalPassengers;
 
         // 4. TRANSACTION BLOCK: Menyimpan data secara atomik
         DB::beginTransaction();
         try {
-            // A. Simpan ke tabel bookings (Induk)
             $booking = Booking::create([
                 'booking_code' => 'KAI-' . strtoupper(Str::random(8)),
                 'user_id' => auth()->id(),
@@ -90,7 +132,6 @@ class BookingController extends Controller
                 'booking_date' => now(),
             ]);
 
-            // B. Looping untuk simpan semua penumpang ke tabel booking_details
             foreach ($request->passengers as $passenger) {
                 BookingDetail::create([
                     'booking_id' => $booking->id,
@@ -103,12 +144,11 @@ class BookingController extends Controller
                 ]);
             }
 
-            // C. Simpan ke tabel payments
             Payment::create([
                 'booking_id' => $booking->id,
-                'payment_method' => 'QRIS',
                 'payment_status' => 'pending',
-                'expired_at' => now()->addHour(),
+                // Batas waktu pemesanan diset 15 menit sesuai alur
+                'expired_at' => now()->addMinutes(15), 
             ]);
 
             DB::commit();
@@ -133,15 +173,15 @@ class BookingController extends Controller
         }
     }
 
-    // 1. Fungsi untuk mengambil detail review pesanan sebelum dibayar
     public function show($id)
     {
         $booking = Booking::with([
             'schedule.train',
             'bookingDetails',
             'payment',
-            'boardStation', // Pastikan sudah set relasi belongsTo di model Booking
-            'alightStation'
+            'boardStation', 
+            'alightStation',
+            'protection' // Relasi proteksi diload agar tampil di review pesanan
         ])->findOrFail($id);
 
         return response()->json([
@@ -150,28 +190,42 @@ class BookingController extends Controller
         ]);
     }
 
-    // 2. Fungsi untuk menyelesaikan pembayaran secara instan
     public function pay(Request $request, $id)
     {
         $request->validate([
-            'payment_method' => 'required|string'
+            'payment_method' => 'required|string|exists:payment_methods,code',
+            'protection_id' => 'nullable|exists:protections,id'
         ]);
 
         $booking = Booking::with('payment')->findOrFail($id);
 
-        if ($booking->status !== 'pending') {
+        // Validasi pembatalan otomatis jika batas waktu 15 menit terlewati
+        if ($booking->status !== 'pending' || now()->greaterThan($booking->payment->expired_at)) {
+            $booking->update(['status' => 'canceled']);
             return response()->json([
                 'status' => 'error',
-                'message' => 'Pesanan ini tidak dapat dibayar karena berstatus ' . $booking->status
+                'message' => 'Waktu pembayaran telah habis. Pesanan dibatalkan dan kursi telah dirilis kembali.'
             ], 422);
+        }
+
+        // Kalkulasi dinamis jika penumpang memilih asuransi perjalanan
+        $protectionPrice = 0;
+        if ($request->protection_id) {
+            $protection = Protection::where('id', $request->protection_id)->where('is_active', true)->first();
+            if ($protection) {
+                $paxCount = $booking->details()->count() ?: 1;
+                $booking->protection_id = $protection->id;
+                $protectionPrice = $protection->price * $paxCount;
+                $booking->protection_price = $protectionPrice;
+                $booking->total_price = $booking->total_price + $protectionPrice; 
+            }
         }
 
         DB::beginTransaction();
         try {
-            // Update status booking kepala struk
-            $booking->update([
-                'status' => 'completed'
-            ]);
+            // Update status booking (dan total harga baru jika pakai asuransi)
+            $booking->status = 'completed';
+            $booking->save();
 
             // Update log pembayaran
             $booking->payment->update([

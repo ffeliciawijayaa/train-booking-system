@@ -89,5 +89,16 @@ class DatabaseSeeder extends Seeder
             'departure_time' => null, // Akhir tujuan tidak punya jam berangkat lagi
             'price_from_start' => 500000, // Harga Jakarta -> Surabaya
         ]);
+
+        // 6. Membuat Data Payment Method
+        \App\Models\PaymentMethod::create(['name' => 'BCA Virtual Account', 'code' => 'bca_va', 'is_active' => true]);
+        \App\Models\PaymentMethod::create(['name' => 'Mandiri Virtual Account', 'code' => 'mandiri_va', 'is_active' => true]);
+        \App\Models\PaymentMethod::create(['name' => 'GoPay', 'code' => 'gopay', 'is_active' => true]);
+        \App\Models\PaymentMethod::create(['name' => 'OVO', 'code' => 'ovo', 'is_active' => true]);
+        \App\Models\PaymentMethod::create(['name' => 'QRIS', 'code' => 'qris', 'is_active' => true]);
+
+        // 7. Membuat Data Protection (Asuransi)
+        \App\Models\Protection::create(['name' => 'Asuransi Perjalanan Standard', 'description' => 'Kompensasi keterlambatan dan kecelakaan ringan.', 'price' => 15000, 'is_active' => true]);
+        \App\Models\Protection::create(['name' => 'Asuransi Perjalanan Premium', 'description' => 'Kompensasi penuh untuk pembatalan, keterlambatan, dan medis.', 'price' => 35000, 'is_active' => true]);
     }
 }
