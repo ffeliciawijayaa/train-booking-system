@@ -9,35 +9,74 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
- public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    // Cari user berdasarkan email
-    $user = \App\Models\User::where('email', $request->email)->first();
+        // Cari user berdasarkan email
+        $user = \App\Models\User::where('email', $request->email)->first();
 
-    // Validasi user dan password
-    if (!$user || !\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+        // Validasi user dan password
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email atau password salah.'
+            ], 401);
+        }
+        // Buat token baru menggunakan Sanctum
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // KUNCI UTAMA: Kirimkan token, name, beserta ROLE-nya ke Frontend
         return response()->json([
-            'status' => 'error',
-            'message' => 'Email atau password salah.'
-        ], 401);
+            'status' => 'success',
+            'message' => 'Login berhasil!',
+            'token' => $token,
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role // Mengembalikan 'admin' atau 'user'
+            ]
+        ]);
     }
-    // Buat token baru menggunakan Sanctum
-    $token = $user->createToken('auth_token')->plainTextToken;
 
-    // KUNCI UTAMA: Kirimkan token, name, beserta ROLE-nya ke Frontend
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Login berhasil!',
-        'token' => $token,
-        'user' => [
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role // Mengembalikan 'admin' atau 'user'
-        ]
-    ]);
-}}
+    public function register(Request $request)
+    {
+        // Validasi input data pendaftaran sesuai skema tabel kelompokmu
+        $request->validate([
+            'nik' => 'required|string|size:16|unique:users,nik',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email',
+            'password' => 'required|string|min:6',
+            'phone_number' => 'required|string',
+            'gender' => 'required|in:pria,wanita',
+        ]);
+
+        // Simpan data user baru ke database
+        $user = User::create([
+            'nik' => $request->nik,
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password), // Password di-hash biar aman
+            'phone_number' => $request->phone_number,
+            'gender' => $request->gender,
+            'role' => 'user', // Default langsung diset sebagai user biasa
+        ]);
+
+        // Otomatis buat token login biar setelah register user langsung masuk ke sistem
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Registrasi berhasil! Akun Anda siap digunakan.',
+            'token' => $token,
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role
+            ]
+        ], 201);
+    }
+}

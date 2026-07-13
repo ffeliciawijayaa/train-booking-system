@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 function UserDashboard() {
+    const navigate = useNavigate();
     const [stations, setStations] = useState([]);
     const [originId, setOriginId] = useState('');
     const [destinationId, setDestinationId] = useState('');
@@ -10,6 +12,7 @@ function UserDashboard() {
     const [tickets, setTickets] = useState([]);
     const [hasSearched, setHasSearched] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [qty, setQty] = useState(1); // State untuk menampung jumlah tiket yang dipesan
 
     // Load daftar stasiun untuk dropdown pencarian:
     useEffect(() => {
@@ -21,11 +24,8 @@ function UserDashboard() {
     // FUNGSI LOGOUT
     const handleLogout = () => {
         if (window.confirm("Apakah Anda yakin ingin keluar?")) {
-            // 1. Hapus token dari localStorage
             localStorage.removeItem('token');
-            localStorage.removeItem('role'); // jika ada role yang disimpan
-            
-            // 2. Tendang user ke halaman login awal
+            localStorage.removeItem('role'); 
             window.location.href = '/login'; 
         }
     };
@@ -53,115 +53,133 @@ function UserDashboard() {
     };
 
     return (
-        <div style={{ padding: '30px', fontFamily: 'Segoe UI, sans-serif', backgroundColor: '#f4f6f9', minHeight: '100vh' }}>
+        <div className="p-6 md:p-8 bg-slate-50 min-h-screen font-sans">
             
             {/* Header Brand dengan Tombol Logout */}
-            <div style={{ 
-                backgroundColor: '#2f55d4', 
-                padding: '20px 40px', 
-                borderRadius: '10px', 
-                color: 'white', 
-                marginBottom: '30px', 
-                display: 'flex', 
-                justifyContent: 'space-between', // Diubah menjadi space-between agar tombol terdorong ke kanan
-                alignItems: 'center' 
-            }}>
+            <div className="bg-blue-600 p-6 md:px-10 rounded-2xl text-white mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-md shadow-blue-600/10">
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '24px' }}>🚄 KAI E-Ticket System</h1>
-                    <p style={{ margin: '5px 0 0 0', opacity: 0.8 }}>Selamat datang, Penumpang! Cari tiket kereta apimu di sini.</p>
+                    <h1 className="text-2xl font-bold flex items-center gap-2">KAI E-Ticket System</h1>
+                    <p className="text-sm text-blue-100 mt-1">Selamat datang, Penumpang! Cari tiket kereta apimu di sini.</p>
                 </div>
                 
                 {/* TOMBOL LOGOUT */}
                 <button 
                     onClick={handleLogout}
-                    style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 5px rgba(239,68,68,0.3)',
-                        transition: '0.2s'
-                    }}
+                    className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-bold shadow-md shadow-red-500/20 transition-all active:scale-95"
                 >
-                    🚪 Keluar / Logout
+                    Keluar
                 </button>
             </div>
 
-            <div style={{ display: 'flex', gap: '30px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            {/* Grid Layout Utama */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 
                 {/* WIDGET PANEL 1: FORM PENCARIAN TIKET */}
-                <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', flex: '1', minWidth: '320px' }}>
-                    <h3 style={{ marginTop: 0, color: '#333', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px' }}>🔍 Cari Tiket Kereta</h3>
-                    <form onSubmit={handleSearch}>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Stasiun Asal / Keberangkatan:</label>
-                            <select value={originId} onChange={(e) => setOriginId(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '4px', border: '1px solid #ccc' }}>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4 mb-5">Cari Tiket Kereta</h3>
+                    <form onSubmit={handleSearch} className="space-y-5">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Stasiun Asal / Keberangkatan:</label>
+                            <select 
+                                value={originId} 
+                                onChange={(e) => setOriginId(e.target.value)} 
+                                required 
+                                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            >
                                 <option value="">-- Pilih Stasiun Asal --</option>
-                                {stations.map(s => <option key={s.id} value={s.id}>{s.name} ({s.station_code}) - {s.city}</option>)}
+                                {stations.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name} ({s.station_code}) - {s.city}</option>
+                                ))}
                             </select>
                         </div>
 
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Stasiun Tujuan / Kedatangan:</label>
-                            <select value={destinationId} onChange={(e) => setDestinationId(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '4px', border: '1px solid #ccc' }}>
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Stasiun Tujuan / Kedatangan:</label>
+                            <select 
+                                value={destinationId} 
+                                onChange={(e) => setDestinationId(e.target.value)} 
+                                required 
+                                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            >
                                 <option value="">-- Pilih Stasiun Tujuan --</option>
-                                {stations.map(s => <option key={s.id} value={s.id}>{s.name} ({s.station_code}) - {s.city}</option>)}
+                                {stations.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name} ({s.station_code}) - {s.city}</option>
+                                ))}
                             </select>
                         </div>
 
-                        <div style={{ marginBottom: '25px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Tanggal Keberangkatan:</label>
-                            <input type="date" value={journeyDate} onChange={(e) => setJourneyDate(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Tanggal Keberangkatan:</label>
+                            <input 
+                                type="date" 
+                                value={journeyDate} 
+                                onChange={(e) => setJourneyDate(e.target.value)} 
+                                required 
+                                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            />
                         </div>
 
-                        <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#ff9800', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', boxShadow: '0 3px 6px rgba(255,152,0,0.3)' }}>
+                        <button 
+                            type="submit" 
+                            className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-500/20 transition-all active:scale-[0.99] tracking-wider"
+                        >
                             CARI JADWAL KERETA
                         </button>
                     </form>
                 </div>
 
                 {/* WIDGET PANEL 2: HASIL PENCARIAN TIKET */}
-                <div style={{ flex: '2', minWidth: '500px' }}>
-                    <h3 style={{ marginTop: 0, color: '#333' }}>🎫 Jadwal Tersedia ({tickets.length})</h3>
+                <div className="lg:col-span-2 space-y-4">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4">Jadwal Tersedia ({tickets.length})</h3>
                     
-                    {loading && <p style={{ color: '#666' }}>Sedang mencari rute terbaik untukmu...</p>}
+                    {loading && <p className="text-sm text-slate-500 animate-pulse">Sedang mencari rute terbaik untukmu...</p>}
 
                     {!hasSearched && !loading && (
-                        <div style={{ backgroundColor: '#e0e7ff', color: '#3730a3', padding: '30px', borderRadius: '8px', textAlign: 'center', fontWeight: '500' }}>
-                            👋 Silakan isi stasiun asal, tujuan, dan tanggal keberangkatan di panel sebelah kiri untuk memunculkan tiket aktif.
+                        <div className="bg-indigo-50 border border-indigo-100 text-indigo-800 p-6 rounded-2xl text-center font-medium text-sm shadow-sm">
+                            Silakan isi stasiun asal, tujuan, dan tanggal keberangkatan di panel sebelah kiri untuk memunculkan tiket aktif.
                         </div>
                     )}
 
                     {hasSearched && !loading && tickets.length === 0 && (
-                        <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', padding: '30px', borderRadius: '8px', textAlign: 'center', fontWeight: '500' }}>
-                            😢 Maaf, tidak ada kereta yang melayani rute tersebut pada tanggal yang Anda pilih. Coba tanggal atau stasiun transit lain!
+                        <div className="bg-red-50 border border-red-100 text-red-800 p-6 rounded-2xl text-center font-medium text-sm shadow-sm">
+                            Maaf, tidak ada kereta yang melayani rute tersebut pada tanggal yang Anda pilih. Coba tanggal atau stasiun transit lain!
                         </div>
                     )}
 
                     {hasSearched && !loading && tickets.map((ticket, index) => (
-                        <div key={index} style={{ backgroundColor: 'white', padding: '25px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 4px 10px rgba(0,0,0,0.04)', borderLeft: '6px solid #2f55d4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                                <span style={{ padding: '3px 8px', backgroundColor: '#f3f4f6', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', color: '#555', textTransform: 'uppercase' }}>
+                        <div 
+                            key={index} 
+                            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-l-blue-600 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6"
+                        >
+                            <div className="space-y-2">
+                                <span className="inline-block px-2.5 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-600 tracking-wide uppercase">
                                     {ticket.class}
                                 </span>
-                                <h4 style={{ margin: '8px 0 4px 0', fontSize: '18px', color: '#222' }}>{ticket.train_name} <span style={{ color: '#777', fontSize: '14px', fontWeight: 'normal' }}>({ticket.train_code})</span></h4>
+                                <h4 className="text-xl font-bold text-slate-800">
+                                    {ticket.train_name} <span className="text-sm text-slate-400 font-normal">({ticket.train_code})</span>
+                                </h4>
                                 
-                                <div style={{ display: 'flex', gap: '20px', marginTop: '15px', color: '#555', fontSize: '14px' }}>
-                                    <div>🛫 **{ticket.departure_time}** (Naik - Stop #{ticket.board_order})</div>
-                                    <div>➡️</div>
-                                    <div>🛬 **{ticket.arrival_time}** (Turun - Stop #{ticket.alight_order})</div>
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-sm text-slate-600">
+                                    <div><span className="font-bold text-slate-800">{ticket.departure_time}</span> <span className="text-xs text-slate-400">(Naik - Stop #{ticket.board_order})</span></div>
+                                    <div className="text-slate-300 hidden sm:block">➔</div>
+                                    <div><span className="font-bold text-slate-800">{ticket.arrival_time}</span> <span className="text-xs text-slate-400">(Turun - Stop #{ticket.alight_order})</span></div>
                                 </div>
                             </div>
 
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '12px', color: '#777', marginBottom: '2px' }}>Harga Per Orang</div>
-                                <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#e65100', marginBottom: '10px' }}>
-                                    Rp {ticket.price.toLocaleString('id-ID')}
+                            <div className="sm:text-right w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 border-slate-100 flex sm:flex-col justify-between sm:justify-center items-center sm:items-end gap-2">
+                                <div>
+                                    <div className="text-xs text-slate-400 mb-0.5">Harga Per Orang</div>
+                                    <div className="text-xl font-bold text-orange-600">
+                                        Rp {ticket.price.toLocaleString('id-ID')}
+                                    </div>
                                 </div>
-                                <button onClick={() => alert(`Melanjutkan pemesanan tiket kereta ${ticket.train_name}!`)} style={{ padding: '8px 20px', backgroundColor: '#2f55d4', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
+                                <button 
+                                    onClick={() => {
+                                        // Mengalihkan halaman ke rute booking sambil membawa query parameter rute penggaris
+                                        navigate(`/booking/${ticket.schedule_id || ticket.id}?board_order=${ticket.board_order}&alight_order=${ticket.alight_order}&qty=${qty}`);
+                                    }} 
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
+                                >
                                     Pesan Tiket
                                 </button>
                             </div>

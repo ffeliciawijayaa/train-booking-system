@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Schedule;
+use App\Models\BookingDetail;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
@@ -51,8 +52,11 @@ class TicketController extends Controller
 
             return [
                 'schedule_id' => $schedule->id,
-                'train_name' => $schedule->train->name,
-                'train_class' => $schedule->train->class,
+                'train' => [
+                    'name' => $schedule->train->name,
+                    'class' => $schedule->train->class,
+                    'total_coaches' => $schedule->train->total_coaches,
+                ],
                 'departure_station' => $depStop->station->name,
                 'departure_time' => $depStop->departure_time,
                 'arrival_station' => $arrStop->station->name,
@@ -69,8 +73,7 @@ class TicketController extends Controller
         ]);
     }
 
-
-        public function getAvailableSeats(Request $request)
+    public function getAvailableSeats(Request $request)
         {
         // 1. Validasi input dari frontend
         $request->validate([
@@ -102,7 +105,7 @@ class TicketController extends Controller
                       ->where('bookings.alight_order', '>', $userDepOrder);
             })
             // Ambil nomor kursinya saja
-            ->pluck('booking_details.seat_number') 
+            ->pluck('booking_details.seat_number')
             ->toArray();
 
         // 4. Kirim daftar nomor kursi yang SUDAH TERISI ke frontend
@@ -113,6 +116,61 @@ class TicketController extends Controller
             'data' => [
                 'coach_number' => $coachNumber,
                 'occupied_seats' => $occupiedSeats // Isinya list kursi terisi, misal: ["1A", "5B"]
+            ]
+        ]);
+    }
+
+    public function getOccupiedSeats(Request $request, $scheduleId)
+    {
+        // Tangkap order penggaris dari stasiun naik dan turun si user
+        $userBoardOrder = $request->query('board_order');
+        $userAlightOrder = $request->query('alight_order');
+
+        // Cari kursi yang bentrok berdasarkan rumus penggaris
+        $occupiedSeats = BookingDetail::whereHas('booking', function ($query) use ($scheduleId, $userBoardOrder, $userAlightOrder) {
+            $query->where('schedule_id', $scheduleId)
+                ->whereIn('status', ['pending', 'completed']) // Ambil yang sukses atau masih pending checkout
+                ->where(function ($q) use ($userBoardOrder, $userAlightOrder) {
+                    // Rumus Overlap: (Naik User < Turun Lama) DAN (Turun User > Naik Lama)
+                    $q->where('board_order', '<', $userAlightOrder)
+                        ->where('alight_order', '>', $userBoardOrder);
+                });
+        })
+        ->get(['coach_number', 'seat_number']); // Cukup ambil nomor gerbong dan kursi
+
+        return response()->json([
+            'occupied_seats' => $occupiedSeats
+        ]);
+    }
+
+    public function getScheduleDetail(Request $request, $id)
+    {
+        $schedule = Schedule::with(['train', 'routeStops'])->findOrFail($id);
+
+        $boardOrder = $request->query('board_order');
+        $alightOrder = $request->query('alight_order');
+
+        $depStop = $schedule->routeStops->firstWhere('stop_order', $boardOrder);
+        $arrStop = $schedule->routeStops->firstWhere('stop_order', $alightOrder);
+
+        // Rumus hitung harga parsial (Sama seperti di fungsi search)
+        $price = 0;
+        if ($depStop && $arrStop) {
+            $price = $arrStop->price_from_start - $depStop->price_from_start;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'schedule_id' => $schedule->id,
+                'train' => [
+                    'name' => $schedule->train->name,
+                    'class' => $schedule->train->class,
+                    'total_coaches' => $schedule->train->total_coaches,
+                ],
+                'departure_station_id' => $depStop ? $depStop->station_id : null,
+                'arrival_station_id' => $arrStop ? $arrStop->station_id : null,
+                'price' => $price, // <--- Data harga sekarang ikut dikirim
             ]
         ]);
     }

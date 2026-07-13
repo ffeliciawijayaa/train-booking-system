@@ -4,9 +4,11 @@ import Navbar from './components/Navbar';
 import Stations from './pages/Stations';
 import Trains from './pages/Trains';
 import Login from './pages/Login'; 
+import Register from './pages/Register'; 
 import ProtectedRoute from './components/ProtectedRoute'; 
 import Schedules from './pages/Schedules';
 import UserDashboard from './pages/UserDashboard';
+import PassengerSeatSelection from './pages/PassengerSeatSelection';
 
 function AdminLayout({ children }) {
   return (
@@ -25,6 +27,7 @@ function App() {
       <Routes>
         {/* ==================== 1. RUTE PUBLIK UMUM ==================== */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
 
         {/* ==================== 2. RUTE KHUSUS USER / PENUMPANG ==================== */}
@@ -34,6 +37,8 @@ function App() {
             <UserDashboard />
           </ProtectedRoute>
         } />
+
+        <Route path="/booking/:scheduleId" element={<PassengerSeatSelection />} />
 
 
         {/* ==================== 3. RUTE KHUSUS ADMIN ==================== */}
