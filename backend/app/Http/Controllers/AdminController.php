@@ -585,6 +585,25 @@ class AdminController extends Controller
             ]);
         }
 
+        public function getUsers()
+        {
+            $users = \App\Models\User::where('role', 'user')
+                ->select(
+                    'id',
+                    'name',
+                    'email',
+                    'phone_number',
+                    'gender'
+                )
+                ->orderBy('id', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $users
+            ]);
+        }
+
         // Menambahkan admin baru
         public function storeAdmin(Request $request)
         {

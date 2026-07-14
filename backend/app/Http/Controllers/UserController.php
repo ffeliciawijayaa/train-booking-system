@@ -25,7 +25,9 @@ class UserController extends Controller
         $request->validate([
             'origin_id' => 'required|exists:stations,id',
             'destination_id' => 'required|exists:stations,id',
-            'journey_date' => 'required|date',
+            'journey_date' => 'required|date|after_or_equal:today',
+        ], [
+            'journey_date.after_or_equal' => 'Tanggal perjalanan tidak boleh sebelum hari ini.',
         ]);
 
         $originId = $request->origin_id;

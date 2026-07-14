@@ -102,7 +102,7 @@ function AdminProtections() {
                     <p className="text-slate-500 text-sm mt-1">Atur asuransi yang bisa dibeli penumpang.</p>
                 </div>
                 <div className="flex gap-3">
-                    <Link to="/admin" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors text-sm">
+                    <Link to="/admin/schedules" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors text-sm">
                         Kembali ke Dashboard
                     </Link>
                     <button 

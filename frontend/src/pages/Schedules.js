@@ -193,7 +193,7 @@ function Schedules() {
     return (
         <div className="p-4 sm:p-8 bg-slate-50 min-h-screen text-slate-800 font-sans pt-20 md:pt-8 md:ml-60">
             <div className="mb-6">
-                <h2 className="text-2xl font-bold text-slate-950">Dashboard Admin - Pembuatan Jadwal</h2>
+                <h2 className="text-2xl font-bold text-slate-950">Kelola Jadwal</h2>
                 <p className="text-sm text-slate-500 mt-1">Kelola perjalanan kereta dan rute transit secara real-time.</p>
             </div>
             

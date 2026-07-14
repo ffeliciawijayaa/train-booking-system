@@ -84,6 +84,14 @@ function Navbar() {
                         <Link to="/admin/payment-methods" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/payment-methods')}>
                             Kelola Pembayaran
                         </Link>
+
+                        <Link to="/admin/admins" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/admins')}>
+                            Kelola Admin
+                        </Link>
+
+                        <Link to="/admin/users" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/users')}>
+                            Kelola User
+                        </Link>
                     </nav>
                 </div>
 

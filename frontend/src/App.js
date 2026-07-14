@@ -17,6 +17,7 @@ import AdminPaymentMethods from './pages/AdminPaymentMethods';
 import AdminBookings from './pages/AdminBookings';
 import AdminAccounts from "./pages/AdminAccounts";
 import ForgotPassword from "./pages/ForgotPassword";
+import AdminUsers from "./pages/AdminUsers";
 
 function AdminLayout({ children }) {
   return (
@@ -107,6 +108,13 @@ function App() {
             <ProtectedRoute allowedRole="admin">
               <AdminLayout><AdminAccounts /></AdminLayout>
             </ProtectedRoute>
+          }
+        />
+
+        <Route path="/admin/users" element={
+              <ProtectedRoute allowedRole="admin">
+                  <AdminLayout><AdminUsers /></AdminLayout>
+              </ProtectedRoute>
           }
         />
 

@@ -60,6 +60,8 @@ function UserDashboard() {
         setLoading(false);
     };
 
+    const today = new Date().toISOString().split("T")[0];
+
     return (
         <div className="font-sans text-slate-800 bg-slate-50 min-h-screen pb-0">
             {/* HERO SECTION */}
@@ -147,6 +149,7 @@ function UserDashboard() {
                                     type="date"
                                     value={journeyDate}
                                     onChange={(e) => setJourneyDate(e.target.value)}
+                                    min={today}
                                     required
                                     className="w-full px-4 pt-7 pb-3 bg-transparent text-sm font-bold text-slate-800 focus:outline-none cursor-pointer"
                                 />

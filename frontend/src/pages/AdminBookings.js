@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 function AdminBookings() {
     const [bookings, setBookings] = useState([]);
@@ -47,9 +48,20 @@ function AdminBookings() {
 
     return (
         <div className="p-6 max-w-[1400px] mx-auto font-sans text-slate-800">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-slate-900">Kelola Transaksi</h1>
-                <p className="text-slate-500 text-sm mt-1">Daftar semua riwayat pemesanan tiket kereta api.</p>
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">
+                        Kelola Transaksi
+                    </h1>
+
+                    <p className="text-slate-500 text-sm mt-1">
+                        Daftar semua riwayat pemesanan tiket kereta api.
+                    </p>
+                </div>
+
+                <Link to="/admin" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors text-sm">
+                    Kembali ke Dashboard
+                </Link>
             </div>
 
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
