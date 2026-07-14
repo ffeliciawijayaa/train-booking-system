@@ -15,6 +15,7 @@ import Profile from './pages/Profile';
 import AdminProtections from './pages/AdminProtections';
 import AdminPaymentMethods from './pages/AdminPaymentMethods';
 import AdminBookings from './pages/AdminBookings';
+import AdminAccounts from "./pages/AdminAccounts";
 
 function AdminLayout({ children }) {
   return (
@@ -99,6 +100,13 @@ function App() {
             <AdminLayout><AdminPaymentMethods /></AdminLayout>
           </ProtectedRoute>
         } />
+
+        <Route path="/admin/admins" element={
+            <ProtectedRoute allowedRole="admin">
+              <AdminLayout><AdminAccounts /></AdminLayout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Jika rute tidak ditemukan, tendang ke login */}
         <Route path="*" element={<Navigate to="/login" replace />} />

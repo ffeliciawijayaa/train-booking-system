@@ -153,8 +153,15 @@ function Schedules() {
 
         const mappedStops = sch.route_stops.map(stop => ({
             station_id: stop.station_id,
-            arrival_time: stop.arrival_time ? stop.arrival_time.substring(0, 5) : '',
-            departure_time: stop.departure_time ? stop.departure_time.substring(0, 5) : '',
+
+            arrival_time: stop.arrival_time
+                ? stop.arrival_time.split(' ')[1]?.substring(0, 5)
+                : '',
+
+            departure_time: stop.departure_time
+                ? stop.departure_time.split(' ')[1]?.substring(0, 5)
+                : '',
+
             price_from_start: stop.price_from_start
         }));
         setRouteStops(mappedStops);

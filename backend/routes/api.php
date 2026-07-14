@@ -84,4 +84,10 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     // Admin Bookings (History Transaksi)
     Route::get('/admin/bookings', [AdminController::class, 'getBookingHistory']);
+
+    // Admin Management
+    Route::get('/admin/admins', [AdminController::class, 'getAdmins']);
+    Route::post('/admin/admins', [AdminController::class, 'storeAdmin']);
+    Route::put('/admin/admins/{id}', [AdminController::class, 'updateAdmin']);
+    Route::delete('/admin/admins/{id}', [AdminController::class, 'deleteAdmin']);
 });

@@ -567,4 +567,99 @@ class AdminController extends Controller
                 'data' => $bookings
             ]);
         }
+
+        // =========================
+        // ADMIN MANAGEMENT
+        // =========================
+
+        // Menampilkan semua akun admin
+        public function getAdmins()
+        {
+            $admins = \App\Models\User::where('role', 'admin')
+                ->orderBy('id', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $admins
+            ]);
+        }
+
+        // Menambahkan admin baru
+        public function storeAdmin(Request $request)
+        {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|min:6',
+                'nik' => 'nullable|string|size:16|unique:users,nik',
+                'phone_number' => 'nullable|string|max:20',
+                'gender' => 'nullable|in:pria,wanita',
+            ]);
+
+            $admin = \App\Models\User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+                'nik' => $request->nik,
+                'phone_number' => $request->phone_number,
+                'gender' => $request->gender,
+                'role' => 'admin',
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Admin berhasil ditambahkan.',
+                'data' => $admin
+            ], 201);
+        }
+
+        // Mengubah data admin
+        public function updateAdmin(Request $request, $id)
+        {
+            $admin = \App\Models\User::findOrFail($id);
+
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email,' . $admin->id,
+                'nik' => 'nullable|string|size:16|unique:users,nik,' . $admin->id,
+                'phone_number' => 'nullable|string|max:20',
+                'gender' => 'nullable|in:pria,wanita',
+            ]);
+
+            $admin->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'nik' => $request->nik,
+                'phone_number' => $request->phone_number,
+                'gender' => $request->gender,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data admin berhasil diperbarui.',
+                'data' => $admin
+            ]);
+        }
+
+        // Menghapus admin
+        public function deleteAdmin($id)
+        {
+            $admin = \App\Models\User::findOrFail($id);
+
+            // Jangan sampai admin menghapus dirinya sendiri
+            if (auth()->id() == $admin->id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Anda tidak dapat menghapus akun sendiri.'
+                ], 400);
+            }
+
+            $admin->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Admin berhasil dihapus.'
+            ]);
+        }
 }
