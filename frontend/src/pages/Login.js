@@ -71,9 +71,17 @@ function Login() {
                             </button>
                         </div>
                     </div>
+                    <div className="text-right">
+                        <Link
+                            to="/forgot-password"
+                            className="text-sm text-blue-600 hover:underline"
+                        >
+                            Lupa Password?
+                        </Link>
+                    </div>
                     
                     <button type="submit" className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all">
-                        Masuk Dashboard
+                        Masuk
                     </button>
                 </form>
 

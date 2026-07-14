@@ -16,6 +16,7 @@ import AdminProtections from './pages/AdminProtections';
 import AdminPaymentMethods from './pages/AdminPaymentMethods';
 import AdminBookings from './pages/AdminBookings';
 import AdminAccounts from "./pages/AdminAccounts";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function AdminLayout({ children }) {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/" element={<Navigate to="/search" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         
         {/* Rute pencarian jadwal sekarang menjadi publik */}
         <Route path="/search" element={<UserDashboard />} />

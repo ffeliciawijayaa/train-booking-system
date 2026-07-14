@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 // 1. RUTE PUBLIK BEBAS (Siapa saja boleh akses tanpa login)
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/tickets/search', [TicketController::class, 'search']);
 Route::get('/tickets/seats', [TicketController::class, 'getAvailableSeats']);
