@@ -19,6 +19,7 @@ class User extends Authenticatable
         'nik',          
         'phone_number', 
         'gender',        
+        'birth_date',
         'role',          
     ];
 

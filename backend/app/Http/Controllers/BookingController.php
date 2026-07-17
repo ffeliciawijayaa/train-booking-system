@@ -46,7 +46,9 @@ class BookingController extends Controller
             'passengers.*.name' => 'required|string',
             'passengers.*.nik' => 'required|string|size:16',
             'passengers.*.gender' => 'required|in:pria,wanita',
-            'passengers.*.seat_number' => 'required|string',
+            'passengers.*.type' => 'required|in:dewasa,infant',
+            'passengers.*.seat_number' => 'nullable|string',
+            'passengers.*.birth_date' => 'nullable|date',
         ]);
 
         // 2. Ambil data urutan stasiun (angka penggaris)
@@ -64,7 +66,18 @@ class BookingController extends Controller
         $userDepOrder = $depStop->stop_order;
         $userArrOrder = $arrStop->stop_order;
         $ticketPricePerPassenger = $arrStop->price_from_start - $depStop->price_from_start;
-        $seatNumbers = collect($request->passengers)->pluck('seat_number')->toArray();
+        
+        $adultPassengers = collect($request->passengers)->where('type', 'dewasa');
+        $infantPassengers = collect($request->passengers)->where('type', 'infant');
+
+        if ($infantPassengers->count() > $adultPassengers->count()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Jumlah penumpang bayi tidak boleh melebihi jumlah penumpang dewasa.'
+            ], 422);
+        }
+
+        $seatNumbers = $adultPassengers->pluck('seat_number')->filter()->toArray();
 
         // 3. PROTEKSI BENTROK
         $occupiedSeats = BookingDetail::join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
@@ -79,7 +92,7 @@ class BookingController extends Controller
             ->pluck('booking_details.seat_number')
             ->toArray();
 
-        if (!empty($occupiedSeats)) {
+        if (!empty($seatNumbers) && !empty($occupiedSeats)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Maaf, kursi berikut sudah dipesan oleh penumpang lain: ' . implode(', ', $occupiedSeats)
@@ -114,7 +127,8 @@ class BookingController extends Controller
         // -----------------------------
 
         $totalPassengers = count($request->passengers);
-        $totalPrice = $ticketPricePerPassenger * $totalPassengers;
+        $totalAdults = $adultPassengers->count();
+        $totalPrice = $ticketPricePerPassenger * $totalAdults;
 
         // 4. TRANSACTION BLOCK: Menyimpan data secara atomik
         DB::beginTransaction();
@@ -133,14 +147,17 @@ class BookingController extends Controller
             ]);
 
             foreach ($request->passengers as $passenger) {
+                $isInfant = $passenger['type'] === 'infant';
                 BookingDetail::create([
                     'booking_id' => $booking->id,
                     'passenger_nik' => $passenger['nik'],
                     'passenger_name' => $passenger['name'],
                     'passenger_gender' => $passenger['gender'],
-                    'coach_number' => $request->coach_number,
-                    'seat_number' => $passenger['seat_number'],
-                    'ticket_price' => $ticketPricePerPassenger,
+                    'passenger_type' => $passenger['type'],
+                    'passenger_birth_date' => $isInfant ? ($passenger['birth_date'] ?? null) : null,
+                    'coach_number' => $isInfant ? null : $request->coach_number,
+                    'seat_number' => $isInfant ? null : $passenger['seat_number'],
+                    'ticket_price' => $isInfant ? 0 : $ticketPricePerPassenger,
                 ]);
             }
 
@@ -177,12 +194,26 @@ class BookingController extends Controller
     {
         $booking = Booking::with([
             'schedule.train',
+            'schedule.routeStops',
             'bookingDetails',
             'payment',
             'boardStation', 
             'alightStation',
             'protection' // Relasi proteksi diload agar tampil di review pesanan
         ])->findOrFail($id);
+
+        // Compute dynamic departure and arrival times based on board and alight order
+        $routeStops = collect($booking->schedule->routeStops ?? []);
+        $boardStop = $routeStops->firstWhere('stop_order', $booking->board_order);
+        $alightStop = $routeStops->firstWhere('stop_order', $booking->alight_order);
+
+        if ($booking->schedule) {
+            $booking->schedule->departure_time = $boardStop ? $boardStop->departure_time : null;
+            $booking->schedule->arrival_time = $alightStop ? $alightStop->arrival_time : null;
+            
+            // Clean up heavy routeStops array to keep response lean
+            unset($booking->schedule->routeStops);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -213,7 +244,7 @@ class BookingController extends Controller
         if ($request->protection_id) {
             $protection = Protection::where('id', $request->protection_id)->where('is_active', true)->first();
             if ($protection) {
-                $paxCount = $booking->details()->count() ?: 1;
+                $paxCount = $booking->bookingDetails()->where('passenger_type', 'dewasa')->count() ?: 1;
                 $booking->protection_id = $protection->id;
                 $protectionPrice = $protection->price * $paxCount;
                 $booking->protection_price = $protectionPrice;

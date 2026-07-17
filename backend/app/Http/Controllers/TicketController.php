@@ -136,7 +136,7 @@ class TicketController extends Controller
                         ->where('alight_order', '>', $userBoardOrder);
                 });
         })
-        ->get(['coach_number', 'seat_number']); // Cukup ambil nomor gerbong dan kursi
+        ->get(['coach_number', 'seat_number', 'passenger_gender']); // Cukup ambil nomor gerbong, kursi, dan gender
 
         return response()->json([
             'occupied_seats' => $occupiedSeats
@@ -145,7 +145,7 @@ class TicketController extends Controller
 
     public function getScheduleDetail(Request $request, $id)
     {
-        $schedule = Schedule::with(['train', 'routeStops'])->findOrFail($id);
+        $schedule = Schedule::with(['train', 'routeStops.station'])->findOrFail($id);
 
         $boardOrder = $request->query('board_order');
         $alightOrder = $request->query('alight_order');
@@ -163,6 +163,7 @@ class TicketController extends Controller
             'status' => 'success',
             'data' => [
                 'schedule_id' => $schedule->id,
+                'journey_date' => $schedule->journey_date,
                 'train' => [
                     'name' => $schedule->train->name,
                     'class' => $schedule->train->class,
@@ -170,6 +171,12 @@ class TicketController extends Controller
                 ],
                 'departure_station_id' => $depStop ? $depStop->station_id : null,
                 'arrival_station_id' => $arrStop ? $arrStop->station_id : null,
+                'departure_station_name' => $depStop && $depStop->station ? $depStop->station->name : null,
+                'departure_station_code' => $depStop && $depStop->station ? $depStop->station->station_code : null,
+                'arrival_station_name' => $arrStop && $arrStop->station ? $arrStop->station->name : null,
+                'arrival_station_code' => $arrStop && $arrStop->station ? $arrStop->station->station_code : null,
+                'departure_time' => $depStop ? $depStop->departure_time : null,
+                'arrival_time' => $arrStop ? $arrStop->arrival_time : null,
                 'price' => $price, // <--- Data harga sekarang ikut dikirim
             ]
         ]);

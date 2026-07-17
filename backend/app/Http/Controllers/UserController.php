@@ -140,6 +140,7 @@ class UserController extends Controller
             'nik' => 'nullable|string|size:16',
             'phone_number' => 'nullable|string|max:15',
             'gender' => 'nullable|in:pria,wanita',
+            'birth_date' => 'nullable|date',
             // Email biasanya tidak diubah sembarangan atau harus cek unique
             'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
@@ -149,6 +150,7 @@ class UserController extends Controller
             'nik' => $request->nik,
             'phone_number' => $request->phone_number,
             'gender' => $request->gender,
+            'birth_date' => $request->birth_date,
             'email' => $request->email,
         ]);
 

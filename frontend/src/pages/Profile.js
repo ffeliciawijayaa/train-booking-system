@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { UserRound } from 'lucide-react';
+import UserNavbar from '../components/UserNavbar';
+import Footer from '../components/Footer';
 
 function Profile() {
     const navigate = useNavigate();
@@ -9,15 +12,16 @@ function Profile() {
         email: '',
         nik: '',
         phone_number: '',
-        gender: ''
+        gender: '',
+        birth_date: ''
     });
-    
+
     // Backup data for canceling edit
     const [originalData, setOriginalData] = useState(null);
-    
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState(false); // Controls the modal
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -36,7 +40,8 @@ function Profile() {
                     email: user.email || '',
                     nik: user.nik || '',
                     phone_number: user.phone_number || '',
-                    gender: user.gender || ''
+                    gender: user.gender || '',
+                    birth_date: user.birth_date || ''
                 };
                 setFormData(userData);
                 setOriginalData(userData);
@@ -54,7 +59,7 @@ function Profile() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        
+
         // Khusus NIK, hanya boleh angka dan maksimal 16 digit
         if (name === 'nik') {
             const onlyNums = value.replace(/[^0-9]/g, '');
@@ -63,7 +68,7 @@ function Profile() {
             }
             return;
         }
-        
+
         setFormData({ ...formData, [name]: value });
     };
 
@@ -81,8 +86,8 @@ function Profile() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert(res.data.message || 'Profil berhasil diperbarui!');
-            setOriginalData(formData); // Update original data after save
-            setIsEditing(false); // Back to read-only view
+            setOriginalData(formData);
+            setIsEditing(false); // Close modal on success
         } catch (err) {
             console.error("Gagal mengupdate profil", err);
             alert(err.response?.data?.message || 'Terjadi kesalahan saat menyimpan profil.');
@@ -92,149 +97,201 @@ function Profile() {
     };
 
     return (
-        <div className="p-6 md:p-8 bg-slate-50 min-h-screen font-sans text-slate-800">
-            <div className="max-w-2xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <span>👤</span> Profil Saya
-                    </h1>
-                    <Link to="/search" className="text-blue-600 hover:text-blue-700 font-semibold text-sm flex items-center gap-1 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 transition-colors">
-                        &larr; Kembali ke Dashboard
-                    </Link>
-                </div>
+        <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
+            <UserNavbar variant="white" />
 
-                {loading ? (
-                    <div className="text-center py-10 text-slate-500 animate-pulse font-semibold">Memuat profil...</div>
-                ) : (
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        {/* HEADER PROFIL */}
-                        <div className="bg-slate-100/50 p-6 flex justify-between items-center border-b border-slate-100">
-                            <div>
-                                <h2 className="text-lg font-bold text-slate-800">Data Diri</h2>
-                                <p className="text-sm text-slate-500">Kelola informasi pribadi Anda.</p>
+            <div className="flex-1 pt-32 pb-24 w-full">
+                <div className="max-w-[1400px] mx-auto px-6 md:px-28 lg:px-32 space-y-8">
+                    {/* PAGE TITLE */}
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-2xl font-black text-blue-900">Profil Saya</h1>
+
+                    </div>
+
+                    {loading ? (
+                        <div className="text-center py-10 text-slate-500 animate-pulse font-semibold">Memuat profil...</div>
+                    ) : (
+                        <>
+                            {/* HEADER CARD */}
+                            <div className="bg-white rounded shadow-sm border border-slate-200 p-6 flex items-center gap-6">
+                                <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 flex-shrink-0 ${formData.gender === 'wanita'
+                                        ? 'bg-pink-100 border-pink-50 text-pink-500'
+                                        : 'bg-blue-100 border-blue-50 text-blue-500'
+                                    }`}>
+                                    <UserRound size={48} strokeWidth={2} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-blue-900">{formData.name || 'User'}</h2>
+                                    <p className="text-slate-500 mt-1">{formData.email}</p>
+                                </div>
                             </div>
-                            {!isEditing && (
-                                <button 
-                                    onClick={() => setIsEditing(true)}
-                                    className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-colors border border-blue-200 shadow-sm"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                    Edit Profil
-                                </button>
-                            )}
-                        </div>
 
-                        <div className="p-6 md:p-8">
-                            {!isEditing ? (
-                                /* VIEW MODE (Read-only) */
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-b border-slate-100 pb-4">
-                                        <div className="text-sm font-semibold text-slate-500">Nama Lengkap</div>
-                                        <div className="sm:col-span-2 font-medium">{formData.name || '-'}</div>
+                            {/* PERSONAL INFORMATION CARD */}
+                            <div className="bg-white rounded shadow-sm border border-slate-200 p-8">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h2 className="text-xl font-bold text-blue-900">Informasi Pribadi</h2>
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold text-sm shadow-md transition-colors flex items-center gap-2"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                        Ubah Data
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+                                    <div>
+                                        <div className="text-sm font-semibold text-slate-400 mb-1">Nama Lengkap</div>
+                                        <div className="font-bold text-slate-800">{formData.name || '-'}</div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-b border-slate-100 pb-4">
-                                        <div className="text-sm font-semibold text-slate-500">Email</div>
-                                        <div className="sm:col-span-2 font-medium">{formData.email || '-'}</div>
+                                    <div>
+                                        <div className="text-sm font-semibold text-slate-400 mb-1">NIK</div>
+                                        <div className="font-bold text-slate-800">{formData.nik || '-'}</div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-b border-slate-100 pb-4">
-                                        <div className="text-sm font-semibold text-slate-500">NIK</div>
-                                        <div className="sm:col-span-2 font-medium">{formData.nik || '-'}</div>
+                                    <div>
+                                        <div className="text-sm font-semibold text-slate-400 mb-1">Email</div>
+                                        <div className="font-bold text-slate-800">{formData.email || '-'}</div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-b border-slate-100 pb-4">
-                                        <div className="text-sm font-semibold text-slate-500">Nomor Telepon</div>
-                                        <div className="sm:col-span-2 font-medium">{formData.phone_number || '-'}</div>
+                                    <div>
+                                        <div className="text-sm font-semibold text-slate-400 mb-1">Nomor Telepon</div>
+                                        <div className="font-bold text-slate-800">{formData.phone_number || '-'}</div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pb-2">
-                                        <div className="text-sm font-semibold text-slate-500">Jenis Kelamin</div>
-                                        <div className="sm:col-span-2 font-medium capitalize">{formData.gender || '-'}</div>
+                                    <div>
+                                        <div className="text-sm font-semibold text-slate-400 mb-1">Tanggal Lahir</div>
+                                        <div className="font-bold text-slate-800">
+                                            {formData.birth_date
+                                                ? new Date(formData.birth_date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
+                                                : '-'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-semibold text-slate-400 mb-1">Jenis Kelamin</div>
+                                        <div className={`font-bold capitalize ${formData.gender === 'wanita' ? 'text-pink-500' : formData.gender === 'pria' ? 'text-blue-500' : 'text-slate-800'}`}>
+                                            {formData.gender || '-'}
+                                        </div>
                                     </div>
                                 </div>
-                            ) : (
-                                /* EDIT MODE (Form) */
-                                <form onSubmit={handleSubmit} className="space-y-5">
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            <Footer />
+
+            {/* EDIT MODAL */}
+            {isEditing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-6 flex justify-between items-center border-b border-slate-100">
+                            <h3 className="text-xl font-bold text-blue-900">Edit Informasi Pribadi</h3>
+                            <button onClick={handleCancel} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <div className="p-6 max-h-[70vh] overflow-y-auto">
+                            <form onSubmit={handleSubmit} id="editProfileForm" className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">NIK</label>
+                                    <input
+                                        type="text"
+                                        name="nik"
+                                        value={formData.nik}
+                                        onChange={handleChange}
+                                        minLength="16"
+                                        maxLength="16"
+                                        pattern="\d{16}"
+                                        title="NIK harus tepat 16 digit angka"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Email</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-1">Nomor Telepon</label>
+                                    <input
+                                        type="text"
+                                        name="phone_number"
+                                        value={formData.phone_number}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Nama Lengkap</label>
-                                        <input 
-                                            type="text" 
-                                            name="name" 
-                                            value={formData.name} 
-                                            onChange={handleChange} 
-                                            required 
-                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                                        <input 
-                                            type="email" 
-                                            name="email" 
-                                            value={formData.email} 
-                                            onChange={handleChange} 
-                                            required 
-                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">NIK (Nomor Induk Kependudukan)</label>
-                                        <input 
-                                            type="text" 
-                                            name="nik" 
-                                            value={formData.nik} 
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1">Tanggal Lahir</label>
+                                        <input
+                                            type="date"
+                                            name="birth_date"
+                                            value={formData.birth_date}
                                             onChange={handleChange}
-                                            minLength="16"
-                                            maxLength="16"
-                                            pattern="\d{16}"
-                                            title="NIK harus tepat 16 digit angka"
-                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                        />
-                                        <p className="text-xs text-slate-500 mt-1">Harus tepat 16 digit angka.</p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Nomor Telepon</label>
-                                        <input 
-                                            type="text" 
-                                            name="phone_number" 
-                                            value={formData.phone_number} 
-                                            onChange={handleChange} 
-                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-2">Jenis Kelamin</label>
-                                        <select 
-                                            name="gender" 
-                                            value={formData.gender} 
-                                            onChange={handleChange} 
-                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                        >
-                                            <option value="">Pilih Jenis Kelamin</option>
-                                            <option value="pria">Pria</option>
-                                            <option value="wanita">Wanita</option>
-                                        </select>
+                                        <label className="block text-sm font-semibold text-slate-700 mb-1">Jenis Kelamin</label>
+                                        <div className="relative">
+                                            <select
+                                                name="gender"
+                                                value={formData.gender}
+                                                onChange={handleChange}
+                                                className="appearance-none w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors bg-white pr-10"
+                                            >
+                                                <option value="">Pilih...</option>
+                                                <option value="pria">Pria</option>
+                                                <option value="wanita">Wanita</option>
+                                            </select>
+                                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="pt-4 flex gap-3">
-                                        <button 
-                                            type="button" 
-                                            onClick={handleCancel}
-                                            disabled={saving}
-                                            className="flex-1 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold transition-colors"
-                                        >
-                                            Batal
-                                        </button>
-                                        <button 
-                                            type="submit" 
-                                            disabled={saving}
-                                            className={`flex-1 py-3 rounded-xl text-white font-bold shadow-md transition-all ${saving ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30'}`}
-                                        >
-                                            {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
+                                </div>
+                            </form>
+                        </div>
+                        <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+                            <button
+                                type="button"
+                                onClick={handleCancel}
+                                disabled={saving}
+                                className="px-5 py-2 rounded bg-white border border-slate-300 text-slate-700 font-bold hover:bg-slate-100 transition-colors"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                form="editProfileForm"
+                                disabled={saving}
+                                className={`px-5 py-2 rounded text-white font-bold shadow-md transition-colors ${saving ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                            >
+                                {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            </button>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
     );
 }

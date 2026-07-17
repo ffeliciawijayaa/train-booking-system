@@ -12,6 +12,7 @@ import PassengerSeatSelection from './pages/PassengerSeatSelection';
 import Payment from './pages/Payment';
 import MyTickets from './pages/MyTickets';
 import Profile from './pages/Profile';
+import Cart from './pages/Cart';
 import AdminProtections from './pages/AdminProtections';
 import AdminPaymentMethods from './pages/AdminPaymentMethods';
 import AdminBookings from './pages/AdminBookings';
@@ -57,6 +58,12 @@ function App() {
         <Route path="/my-tickets" element={
           <ProtectedRoute allowedRole="user">
             <MyTickets />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/cart" element={
+          <ProtectedRoute allowedRole="user">
+            <Cart />
           </ProtectedRoute>
         } />
 

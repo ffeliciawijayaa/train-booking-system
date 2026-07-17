@@ -9,7 +9,8 @@ function Register() {
         email: '',
         password: '',
         phone_number: '',
-        gender: 'pria'
+        gender: '',
+        birth_date: ''
     });
     const navigate = useNavigate();
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -31,12 +32,12 @@ function Register() {
                 email: formData.email,
                 password: formData.password,
                 phone_number: formData.phone_number,
-                gender: formData.gender
+                gender: formData.gender,
+                birth_date: formData.birth_date
             });
 
-            localStorage.setItem('token', response.data.token);
             alert(response.data.message);
-            navigate('/');
+            navigate('/login');
         } catch (error) {
             alert(error.response?.data?.message || 'Registrasi gagal, periksa kembali data Anda.');
         }
@@ -146,25 +147,32 @@ function Register() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">No. Telepon</label>
                                 <input type="text" placeholder="No Telepon" className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm"
                                     onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })} required />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">Jenis Kelamin</label>
-                                <div className="relative">
-                                    <select className="appearance-none w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm bg-white pr-10"
-                                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}>
-                                        <option value="pria">Pria</option>
-                                        <option value="wanita">Wanita</option>
-                                    </select>
-                                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">Tanggal Lahir</label>
+                                <input type="date" className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm"
+                                    onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })} required />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2 tracking-wider">Jenis Kelamin</label>
+                            <div className="relative">
+                                <select className="appearance-none w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm bg-white pr-10"
+                                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })} required value={formData.gender}>
+                                    <option value="" disabled>Pilih Jenis Kelamin</option>
+                                    <option value="pria">Pria</option>
+                                    <option value="wanita">Wanita</option>
+                                </select>
+                                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
                             </div>
                         </div>

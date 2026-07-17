@@ -52,6 +52,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:6',
             'phone_number' => 'required|string',
             'gender' => 'required|in:pria,wanita',
+            'birth_date' => 'required|date',
         ]);
 
         // Simpan data user baru ke database
@@ -62,20 +63,16 @@ class AuthController extends Controller
             'password' => Hash::make($request->password), // Password di-hash biar aman
             'phone_number' => $request->phone_number,
             'gender' => $request->gender,
+            'birth_date' => $request->birth_date,
             'role' => 'user', // Default langsung diset sebagai user biasa
         ]);
 
-        // Otomatis buat token login biar setelah register user langsung masuk ke sistem
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
             'status' => 'success',
-            'message' => 'Registrasi berhasil! Akun Anda siap digunakan.',
-            'token' => $token,
+            'message' => 'Registrasi berhasil! Silakan masuk (login) untuk menggunakan akun Anda.',
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role
             ]
         ], 201);
     }

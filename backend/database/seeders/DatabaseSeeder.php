@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
+            'birth_date' => '1990-01-01',
         ]);
 
         User::create([
@@ -29,6 +30,7 @@ class DatabaseSeeder extends Seeder
             'nik' => '3273012345678901',
             'phone_number' => '08123456789',
             'gender' => 'pria',
+            'birth_date' => '1995-05-15',
         ]);
 
         // 2. Membuat Data Master Stasiun
