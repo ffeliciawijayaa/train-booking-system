@@ -46,6 +46,26 @@ class DatabaseSeeder extends Seeder
             'class' => 'executive',
             'total_coaches' => 5, // Kita set 5 gerbong dulu untuk contoh
         ]);
+        $argoLawu = Train::create([
+            'train_code' => 'ARG-02',
+            'name' => 'Argo Lawu',
+            'class' => 'executive',
+            'total_coaches' => 6,
+        ]);
+
+        $matarmaja = Train::create([
+            'train_code' => 'MTR-01',
+            'name' => 'Matarmaja',
+            'class' => 'economy',
+            'total_coaches' => 7,
+        ]);
+
+        $taksaka = Train::create([
+            'train_code' => 'TKS-01',
+            'name' => 'Taksaka',
+            'class' => 'economy',
+            'total_coaches' => 6,
+        ]);
 
         // 4. Membuat "Bungkus" Jadwal Kereta (Untuk tanggal di masa depan)
         $schedule = Schedule::create([
