@@ -93,11 +93,41 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 6. Membuat Data Payment Method
-        \App\Models\PaymentMethod::create(['name' => 'BCA Virtual Account', 'code' => 'bca_va', 'is_active' => true]);
-        \App\Models\PaymentMethod::create(['name' => 'Mandiri Virtual Account', 'code' => 'mandiri_va', 'is_active' => true]);
-        \App\Models\PaymentMethod::create(['name' => 'GoPay', 'code' => 'gopay', 'is_active' => true]);
-        \App\Models\PaymentMethod::create(['name' => 'OVO', 'code' => 'ovo', 'is_active' => true]);
-        \App\Models\PaymentMethod::create(['name' => 'QRIS', 'code' => 'qris', 'is_active' => true]);
+        \App\Models\PaymentMethod::create([
+            'name' => 'BCA Virtual Account',
+            'code' => 'bca_va',
+            'logo_url' => 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg',
+            'instructions' => "1. Masuk ke m-BCA. \n 2. Pilih Transfer > BCA Virtual Account. \n3. Masukkan nomor VA lalu konfirmasi.",
+            'is_active' => true
+        ]);
+        \App\Models\PaymentMethod::create([
+            'name' => 'Mandiri Virtual Account',
+            'code' => 'mandiri_va',
+            'logo_url' => 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Bank_Mandiri_logo_2016.svg',
+            'instructions' => "1. Masuk ke Livin by Mandiri. \n2. Pilih Bayar > Multi Payment. \n3. Masukkan kode perusahaan dan nomor VA.",
+            'is_active' => true
+        ]);
+        \App\Models\PaymentMethod::create([
+            'name' => 'GoPay',
+            'code' => 'gopay',
+            'logo_url' => 'https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg',
+            'instructions' => "1. Buka aplikasi GoPay. \n2. Scan QR Code pada layar. \n3. Masukkan PIN untuk konfirmasi.",
+            'is_active' => true
+        ]);
+        \App\Models\PaymentMethod::create([
+            'name' => 'OVO',
+            'code' => 'ovo',
+            'logo_url' => 'https://upload.wikimedia.org/wikipedia/commons/e/eb/Logo_ovo_purple.svg',
+            'instructions' => "1. Masukkan nomor HP OVO Anda. \n2. Buka notifikasi aplikasi OVO. \n3. Klik Bayar untuk menyelesaikan.",
+            'is_active' => true
+        ]);
+        \App\Models\PaymentMethod::create([
+            'name' => 'QRIS',
+            'code' => 'qris',
+            'logo_url' => 'https://upload.wikimedia.org/wikipedia/commons/e/e1/QRIS_logo.svg',
+            'instructions' => "1. Buka aplikasi m-banking / e-wallet. \n2. Scan QRIS yang tampil di layar. \n3. Masukkan PIN dan bayar.",
+            'is_active' => true
+        ]);
 
         // 7. Membuat Data Protection (Asuransi)
         \App\Models\Protection::create(['name' => 'Asuransi Perjalanan Standard', 'description' => 'Kompensasi keterlambatan dan kecelakaan ringan.', 'price' => 15000, 'is_active' => true]);

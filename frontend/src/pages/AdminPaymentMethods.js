@@ -6,6 +6,7 @@ function AdminPaymentMethods() {
     const [methods, setMethods] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [expandedRow, setExpandedRow] = useState(null);
     const [formData, setFormData] = useState({
         id: null,
         name: '',
@@ -94,6 +95,15 @@ function AdminPaymentMethods() {
         }
     };
 
+    //toggle buka-tutup baris instruksi
+    const toggleRow = (id) => {
+        if (expandedRow === id) {
+            setExpandedRow(null);
+        } else {
+            setExpandedRow(id);
+        }
+    }
+
     return (
         <div className="p-6 max-w-6xl mx-auto font-sans text-slate-800">
             <div className="flex justify-between items-center mb-6">
@@ -173,31 +183,49 @@ function AdminPaymentMethods() {
                         ) : methods.length === 0 ? (
                             <tr><td colSpan="6" className="p-4 text-center text-slate-500">Belum ada metode pembayaran terdaftar.</td></tr>
                         ) : (
-                            methods.map((method) => (
-                                <tr key={method.id} className="hover:bg-slate-50 border-b last:border-0 transition-colors">
-                                    <td className="p-4 text-sm font-semibold">{method.id}</td>
-                                    <td className="p-4">
-                                        {method.logo_url ? (
-                                            <img src={method.logo_url} alt={method.name} className="h-8 object-contain" />
-                                        ) : (
-                                            <span className="text-xs text-slate-400 italic">Tidak ada logo</span>
-                                        )}
-                                    </td>
-                                    <td className="p-4 text-sm font-bold text-blue-600">{method.name}</td>
-                                    <td className="p-4 text-sm text-slate-600 max-w-xs truncate" title={method.instructions}>{method.instructions || '-'}</td>
-                                    <td className="p-4">
-                                        <span className={`px-2 py-1 text-xs font-bold rounded-md ${method.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                                            {method.is_active ? 'AKTIF' : 'NONAKTIF'}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-center">
-                                        <div className="flex justify-center gap-2">
-                                            <button onClick={() => handleEdit(method)} className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded font-semibold text-xs transition-colors">Edit</button>
-                                            <button onClick={() => handleDelete(method.id)} className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded font-semibold text-xs transition-colors">Hapus</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                            methods.map((method) => {
+                                const isExpanded = expandedRow === method.id;
+                                return (
+                                    <tr key={method.id} className="hover:bg-slate-50 border-b last:border-0 transition-colors">
+                                        <td className="p-4 text-sm font-semibold">{method.id}</td>
+                                        <td className="p-4">
+                                            {method.logo_url ? (
+                                                <img src={method.logo_url} alt={method.name} className="h-8 object-contain" />
+                                            ) : (
+                                                <span className="text-xs text-slate-400 italic">Tidak ada logo</span>
+                                            )}
+                                        </td>
+                                        <td className="p-4 text-sm font-bold text-blue-600">{method.name}</td>
+                                        
+                                        {/* kolom buka tutup instructions */}
+                                        <td className="p-4 text-sm text-slate-600 max-w-xs">
+                                            <div className={`${isExpanded ? 'whitespace-pre-line text-slate-900 bg-slate-50 p-2 rounded-lg border border-slate-200' : 'truncate max-w-[200px]'}`}>
+                                                {method.instructions || '-'}
+                                            </div>
+                                            {method.instructions && (
+                                                <button 
+                                                    onClick={() => toggleRow(method.id)}
+                                                    className="text-[11px] text-blue-600 font-bold hover:underline mt-1 block"
+                                                >
+                                                    {isExpanded ? '▲ Tutup Langkah' : '▼ Lihat Langkah'}
+                                                </button>
+                                            )}
+                                        </td>
+
+                                        <td className="p-4">
+                                            <span className={`px-2 py-1 text-xs font-bold rounded-md ${method.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                                {method.is_active ? 'AKTIF' : 'NONAKTIF'}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <div className="flex justify-center gap-2">
+                                                <button onClick={() => handleEdit(method)} className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded font-semibold text-xs transition-colors">Edit</button>
+                                                <button onClick={() => handleDelete(method.id)} className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded font-semibold text-xs transition-colors">Hapus</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })
                         )}
                     </tbody>
                 </table>
