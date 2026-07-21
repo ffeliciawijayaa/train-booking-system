@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 mb-16">
           <div className="md:col-span-5 lg:col-span-4">
             <div className="font-black text-slate-900 text-2xl mb-4">
-              Sobat <span className="text-blue-600">Rel</span>
+              Sobat <span className="text-[#1800ad]">Rel</span>
             </div>
             <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
               Platform pemesanan tiket kereta api terpercaya yang memberikan
@@ -29,7 +29,7 @@ const Footer = () => {
                 <li>
                   <button
                     onClick={() => navigate("/login")}
-                    className="text-slate-500 hover:text-blue-600 text-sm transition-colors"
+                    className="text-slate-500 hover:text-[#1800ad] text-sm transition-colors"
                   >
                     Masuk
                   </button>
@@ -37,7 +37,7 @@ const Footer = () => {
                 <li>
                   <button
                     onClick={() => navigate("/register")}
-                    className="text-slate-500 hover:text-blue-600 text-sm transition-colors"
+                    className="text-slate-500 hover:text-[#1800ad] text-sm transition-colors"
                   >
                     Daftar Akun
                   </button>
@@ -55,9 +55,9 @@ const Footer = () => {
                 <li>
                   <a
                     href="mailto:info@sobatrel.id"
-                    className="flex items-center text-slate-500 hover:text-blue-600 text-sm transition-colors group"
+                    className="flex items-center text-slate-500 hover:text-[#1800ad] text-sm transition-colors group"
                   >
-                    <Mail className="w-4 h-4 mr-3 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                    <Mail className="w-4 h-4 mr-3 text-slate-400 group-hover:text-[#1800ad] transition-colors" />
                     info@sobatrel.id
                   </a>
                 </li>
@@ -66,10 +66,10 @@ const Footer = () => {
                     href="https://instagram.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-slate-500 hover:text-blue-600 text-sm transition-colors group"
+                    className="flex items-center text-slate-500 hover:text-[#1800ad] text-sm transition-colors group"
                   >
                     <svg
-                      className="w-4 h-4 mr-3 text-slate-400 group-hover:text-blue-600 transition-colors"
+                      className="w-4 h-4 mr-3 text-slate-400 group-hover:text-[#1800ad] transition-colors"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
@@ -96,10 +96,10 @@ const Footer = () => {
                     href="https://linkedin.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center text-slate-500 hover:text-blue-600 text-sm transition-colors group"
+                    className="flex items-center text-slate-500 hover:text-[#1800ad] text-sm transition-colors group"
                   >
                     <svg
-                      className="w-4 h-4 mr-3 text-slate-400 group-hover:text-blue-600 transition-colors"
+                      className="w-4 h-4 mr-3 text-slate-400 group-hover:text-[#1800ad] transition-colors"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"

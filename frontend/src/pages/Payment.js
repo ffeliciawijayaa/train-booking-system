@@ -4,13 +4,15 @@ import axios from 'axios';
 import UserNavbar from "../components/UserNavbar";
 import Footer from "../components/Footer";
 import ProgressSteps from '../components/ProgressSteps';
+import { usePopup } from '../components/PopupContext';
 
 function Payment() {
+    const { showPopup, showConfirm } = usePopup();
     const { bookingId } = useParams();
     const navigate = useNavigate();
 
-    // State for Wizard Step
-    const [currentStep, setCurrentStep] = useState(2); // Start at Step 2 (Proteksi Tambahan)
+
+    const [currentStep, setCurrentStep] = useState(2);
 
     const [bookingData, setBookingData] = useState(null);
     const [paymentMethods, setPaymentMethods] = useState([]);
@@ -32,17 +34,17 @@ function Payment() {
         setTimeout(() => setCopiedText(''), 2000);
     };
 
-    // 1. Ambil Data Booking, Metode Bayar, dan Asuransi dari Backend
+    //ambil Data Booking, Metode Bayar, dan Asuransi dari Backend
     useEffect(() => {
         const fetchAllData = async () => {
             if (!token) {
-                alert("Anda belum login.");
+                showPopup("Anda belum login.");
                 navigate('/login');
                 return;
             }
 
             try {
-                // Fetch paralel agar cepat
+
                 const [resBooking, resPayments, resProtections] = await Promise.all([
                     axios.get(`http://127.0.0.1:8000/api/bookings/${bookingId}`, { headers: { Authorization: `Bearer ${token}` } }),
                     axios.get(`http://127.0.0.1:8000/api/payment-methods`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -59,7 +61,7 @@ function Payment() {
                 setLoading(false);
             } catch (error) {
                 console.error("Gagal mengambil data", error);
-                alert("Data pesanan tidak ditemukan atau sesi Anda habis.");
+                showPopup("Data pesanan tidak ditemukan atau sesi Anda habis.");
                 setLoading(false);
                 if (error.response?.status === 401) navigate('/login');
             }
@@ -67,13 +69,13 @@ function Payment() {
         fetchAllData();
     }, [bookingId, token, navigate]);
 
-    // 2. Logika Live Countdown
+    //live countdown logic
     useEffect(() => {
         if (!bookingData?.payment?.expired_at) return;
 
         const interval = setInterval(() => {
             const now = new Date().getTime();
-            // Pastikan format tanggal aman untuk berbagai browser
+
             const expired = new Date(bookingData.payment.expired_at.replace(/-/g, "/")).getTime();
             const distance = expired - now;
 
@@ -91,18 +93,18 @@ function Payment() {
         return () => clearInterval(interval);
     }, [bookingData]);
 
-    // Efek otomatis menendang user jika waktu habis
+    //otomatis kick user jika waktu habis
     useEffect(() => {
         if (isExpired) {
-            alert("Waktu pembayaran telah habis. Pesanan Anda dibatalkan.");
+            showPopup("Waktu pembayaran telah habis. Pesanan Anda dibatalkan.");
             navigate('/');
         }
     }, [isExpired, navigate]);
 
-    // 3. Proses Pembayaran
+    //proses Pembayaran
     const handleProcessPayment = async () => {
         if (!selectedMethod) {
-            alert("Silakan pilih metode pembayaran terlebih dahulu!");
+            showPopup("Silakan pilih metode pembayaran terlebih dahulu!");
             return;
         }
 
@@ -115,11 +117,11 @@ function Payment() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            alert(response.data.message);
+            showPopup(response.data.message);
             navigate('/my-tickets');
         } catch (error) {
             console.error("Pembayaran gagal", error);
-            alert(error.response?.data?.message || "Terjadi kendala saat memproses pembayaran.");
+            showPopup(error.response?.data?.message || "Terjadi kendala saat memproses pembayaran.");
         } finally {
             setIsProcessing(false);
         }
@@ -130,7 +132,7 @@ function Payment() {
 
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=QRIS_KAI_${bookingData.booking_code}_${bookingData.total_price}`;
 
-    // Kalkulasi Total Real-time (Harga Tiket + Asuransi jika dipilih)
+    //kalkulasi Harga Tiket + Asuransi jika dipilih
     const baseTotal = parseInt(bookingData.total_price || 0);
     const adultPaxCount = bookingData.booking_details?.filter(d => d.passenger_type === 'dewasa').length || bookingData.booking_details?.length || 1;
     const protectionCost = selectedProtection ? (parseInt(selectedProtection.price) * adultPaxCount) : 0;
@@ -142,13 +144,13 @@ function Payment() {
             <div className="flex-1 pt-32 pb-24 w-full">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-28 lg:px-32 space-y-8">
 
-                    {/* PROGRESS STEPS */}
+                    {/*progress step*/}
                     <div className="max-w-3xl mx-auto mb-12 px-4">
                         <ProgressSteps currentStep={currentStep} />
                     </div>
 
                     <div className="max-w-4xl mx-auto">
-                        {/* Timer Warning Box dengan Live Countdown */}
+                        {/*live countdown*/}
                         <div className="bg-amber-50 border border-amber-200 p-4 rounded mb-8 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm gap-4">
                             <div>
                                 <h4 className="text-amber-800 font-bold text-sm">Selesaikan Pemesanan Anda</h4>
@@ -165,7 +167,7 @@ function Payment() {
 
                         <div className="bg-white p-6 sm:p-8 rounded shadow-sm border border-slate-200">
 
-                            {/* STEP 2: PROTEKSI TAMBAHAN */}
+                            {/*proteksi tambahan*/}
                             {currentStep === 2 && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="border-b border-slate-200 pb-4 mb-6">
@@ -173,8 +175,8 @@ function Payment() {
                                     </div>
 
                                     <div className="space-y-4 mb-8">
-                                        <label className={`flex items-start p-4 rounded border cursor-pointer transition-all ${!selectedProtection ? 'border-blue-500 bg-blue-50 text-blue-800 ring-1 ring-blue-500' : 'border-slate-200 hover:border-slate-300'}`}>
-                                            <input type="radio" name="protection" className="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                        <label className={`flex items-start p-4 rounded border cursor-pointer transition-all ${!selectedProtection ? 'border-[#1800ad] bg-[#1800ad]/5 text-blue-800 ring-1 ring-[#1800ad]' : 'border-slate-200 hover:border-slate-300'}`}>
+                                            <input type="radio" name="protection" className="mt-1 w-4 h-4 text-[#1800ad] focus:ring-[#1800ad]"
                                                 checked={!selectedProtection} onChange={() => setSelectedProtection(null)}
                                             />
                                             <div className="ml-4 text-sm">
@@ -184,14 +186,14 @@ function Payment() {
                                         </label>
 
                                         {protections.map((prot) => (
-                                            <label key={prot.id} className={`flex items-start p-4 rounded border cursor-pointer transition-all ${selectedProtection?.id === prot.id ? 'border-blue-500 bg-blue-50 text-blue-800 ring-1 ring-blue-500' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
-                                                <input type="radio" name="protection" className="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                            <label key={prot.id} className={`flex items-start p-4 rounded border cursor-pointer transition-all ${selectedProtection?.id === prot.id ? 'border-[#1800ad] bg-[#1800ad]/5 text-blue-800 ring-1 ring-[#1800ad]' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
+                                                <input type="radio" name="protection" className="mt-1 w-4 h-4 text-[#1800ad] focus:ring-[#1800ad]"
                                                     checked={selectedProtection?.id === prot.id} onChange={() => setSelectedProtection(prot)}
                                                 />
                                                 <div className="ml-4 flex-1 text-sm">
                                                     <div className="flex justify-between items-center mb-1">
                                                         <span className="font-bold text-slate-800 text-base">{prot.name}</span>
-                                                        <span className="text-blue-600 font-bold">+Rp {parseInt(prot.price).toLocaleString('id-ID')}/pax</span>
+                                                        <span className="text-[#1800ad] font-bold">+Rp {parseInt(prot.price).toLocaleString('id-ID')}/pax</span>
                                                     </div>
                                                     <span className="text-xs text-slate-500 leading-relaxed block max-w-2xl">{prot.description}</span>
                                                 </div>
@@ -201,8 +203,8 @@ function Payment() {
 
                                     <div className="flex justify-between pt-4 border-t border-slate-100 mt-6">
                                         <button
-                                            onClick={() => {
-                                                if (window.confirm('Yakin ingin membatalkan pesanan tiket ini?')) {
+                                            onClick={async () => {
+                                                if (await showConfirm('Yakin ingin membatalkan pesanan tiket ini?')) {
                                                     navigate('/');
                                                 }
                                             }}
@@ -212,7 +214,7 @@ function Payment() {
                                         </button>
                                         <button
                                             onClick={() => setCurrentStep(3)}
-                                            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded shadow transition-colors"
+                                            className="px-8 py-3 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded shadow transition-colors"
                                         >
                                             Lanjut
                                         </button>
@@ -220,7 +222,7 @@ function Payment() {
                                 </div>
                             )}
 
-                            {/* STEP 3: REVIEW */}
+                            {/*review*/}
                             {currentStep === 3 && (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="border-b border-slate-200 pb-4 mb-6">
@@ -228,9 +230,9 @@ function Payment() {
                                     </div>
 
                                     <div className="flex flex-col gap-6">
-                                        {/* Rute & Kereta */}
+                                        {/*rute kereta */}
                                         <div className="bg-slate-50 p-5 rounded border border-slate-200">
-                                            <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-[#1800ad] bg-[#1800ad]/10 px-2 py-1 rounded">
                                                 {bookingData.schedule?.train?.class?.toUpperCase() || 'KERETA'}
                                             </span>
                                             <h3 className="text-lg font-bold text-slate-900 mt-3 mb-4">{bookingData.schedule?.train?.name}</h3>
@@ -251,7 +253,7 @@ function Payment() {
                                             </div>
                                         </div>
 
-                                        {/* Daftar Penumpang */}
+                                        {/*daftar penumpang*/}
                                         <div className="bg-slate-50 p-5 rounded border border-slate-200">
                                             <h3 className="text-sm font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Data penumpang</h3>
                                             <div className="space-y-3">
@@ -270,7 +272,7 @@ function Payment() {
                                                                     Tanpa Kursi
                                                                 </span>
                                                             ) : (
-                                                                <span className="bg-blue-600 text-white font-bold px-2.5 py-1 rounded text-xs">
+                                                                <span className="bg-[#1800ad] text-white font-bold px-2.5 py-1 rounded text-xs">
                                                                     Gerbong {detail.coach_number} - {detail.seat_number}
                                                                 </span>
                                                             )}
@@ -281,7 +283,7 @@ function Payment() {
                                         </div>
                                     </div>
 
-                                    {/* Ringkasan Biaya Sementara */}
+                                    {/*biaya*/}
                                     <div className="border-t border-slate-100 pt-6">
                                         <div className="bg-slate-50 p-5 rounded border border-slate-200">
                                             <div className="flex justify-between text-sm text-slate-600 mb-2">
@@ -312,7 +314,7 @@ function Payment() {
                                         </button>
                                         <button
                                             onClick={() => setCurrentStep(4)}
-                                            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded shadow transition-colors"
+                                            className="px-8 py-3 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded shadow transition-colors"
                                         >
                                             Lanjut ke Pembayaran
                                         </button>
@@ -320,7 +322,7 @@ function Payment() {
                                 </div>
                             )}
 
-                            {/* STEP 4: PEMBAYARAN */}
+                            {/*pembayaran*/}
                             {currentStep === 4 && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                                     <div className="border-b pb-4 mb-6 flex justify-between items-end">
@@ -340,7 +342,7 @@ function Payment() {
                                                 <label
                                                     key={method.code}
                                                     className={`flex items-center justify-between p-4 rounded border cursor-pointer text-sm font-medium transition-all ${selectedMethod === method.code
-                                                        ? 'border-blue-500 bg-blue-50/50 text-blue-800 ring-1 ring-blue-500'
+                                                        ? 'border-[#1800ad] bg-[#1800ad]/5/50 text-blue-800 ring-1 ring-[#1800ad]'
                                                         : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'
                                                         }`}
                                                 >
@@ -351,7 +353,7 @@ function Payment() {
                                                         value={method.code}
                                                         checked={selectedMethod === method.code}
                                                         onChange={() => setSelectedMethod(method.code)}
-                                                        className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                                        className="w-4 h-4 text-[#1800ad] focus:ring-[#1800ad]"
                                                     />
                                                 </label>
                                             ))}
@@ -377,9 +379,9 @@ function Payment() {
                                                                     <p className="text-xl font-bold text-slate-800 tracking-wider font-mono">
                                                                         1234567890123456
                                                                     </p>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={() => handleCopy(`1234567890123456`)}
-                                                                        className="text-slate-400 hover:text-blue-600 transition-colors"
+                                                                        className="text-slate-400 hover:text-[#1800ad] transition-colors"
                                                                         title="Salin"
                                                                     >
                                                                         {copiedText === `1234567890123456` ? (
@@ -406,9 +408,9 @@ function Payment() {
                                                                     <p className="text-xl font-bold text-slate-800 tracking-wider font-mono">
                                                                         TRAIN-{bookingData?.booking_code}
                                                                     </p>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={() => handleCopy(`TRAIN-${bookingData?.booking_code}`)}
-                                                                        className="text-slate-400 hover:text-blue-600 transition-colors"
+                                                                        className="text-slate-400 hover:text-[#1800ad] transition-colors"
                                                                         title="Salin"
                                                                     >
                                                                         {copiedText === `TRAIN-${bookingData?.booking_code}` ? (

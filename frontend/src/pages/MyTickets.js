@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Train, Ticket } from 'lucide-react';
+import { Train } from 'lucide-react';
 import UserNavbar from '../components/UserNavbar';
 import Footer from '../components/Footer';
 
@@ -99,9 +99,9 @@ function MyTickets() {
                     </div>
 
                     <div className="flex items-center gap-3 text-slate-700">
-                        <div className="font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-100">{booking.board_station?.name}</div>
+                        <div className="font-semibold text-[#11007a] bg-[#1800ad]/5 px-3 py-1.5 rounded border border-blue-100">{booking.board_station?.name}</div>
                         <span className="text-slate-400">&rarr;</span>
-                        <div className="font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-100">{booking.alight_station?.name}</div>
+                        <div className="font-semibold text-[#11007a] bg-[#1800ad]/5 px-3 py-1.5 rounded border border-blue-100">{booking.alight_station?.name}</div>
                     </div>
 
                     <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded border border-slate-100">
@@ -150,7 +150,7 @@ function MyTickets() {
                 <div className="max-w-[1400px] mx-auto px-6 md:px-28 lg:px-32 space-y-8">
 
                     <div className="flex flex-col mb-4">
-                        <h1 className="text-2xl font-black text-blue-900 flex items-center gap-2">
+                        <h1 className="text-2xl font-black text-[#1800ad] flex items-center gap-2">
                             Tiket Saya
                         </h1>
                     </div>
@@ -159,13 +159,13 @@ function MyTickets() {
                     <div className="bg-slate-100 p-1.5 rounded flex w-full">
                         <button
                             onClick={() => setActiveTab('aktif')}
-                            className={`flex-1 px-8 py-2.5 font-bold text-sm rounded transition-all duration-200 ${activeTab === 'aktif' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 px-8 py-2.5 font-bold text-sm rounded transition-all duration-200 ${activeTab === 'aktif' ? 'bg-white text-[#11007a] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Tiket Aktif ({activeTickets.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('riwayat')}
-                            className={`flex-1 px-8 py-2.5 font-bold text-sm rounded transition-all duration-200 ${activeTab === 'riwayat' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 px-8 py-2.5 font-bold text-sm rounded transition-all duration-200 ${activeTab === 'riwayat' ? 'bg-white text-[#11007a] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Riwayat Pembelian ({historyTickets.length})
                         </button>

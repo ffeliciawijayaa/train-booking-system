@@ -47,51 +47,50 @@ function AdminBookings() {
     };
 
     return (
-        <div className="p-6 max-w-[1400px] mx-auto font-sans text-slate-800">
-            <div className="flex justify-between items-center mb-6">
+        <div className="p-6 md:p-8 font-sans text-slate-800">
+            
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Kelola Transaksi
-                    </h1>
-
-                    <p className="text-slate-500 text-sm mt-1">
-                        Daftar semua riwayat pemesanan tiket kereta api.
-                    </p>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-1">Kelola Pemesanan</h2>
+                    <p className="text-slate-500 text-sm">Daftar seluruh pemesanan tiket pada sistem.</p>
                 </div>
-
-                <Link to="/admin" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors text-sm">
-                    Kembali ke Dashboard
-                </Link>
+                
             </div>
+    
 
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-slate-800">Daftar Transaksi</h3>
+                </div>
+                
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
-                            <tr className="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider">
-                                <th className="p-4 border-b font-bold">Waktu Transaksi</th>
-                                <th className="p-4 border-b font-bold">Booking Code</th>
-                                <th className="p-4 border-b font-bold">Pemesan</th>
-                                <th className="p-4 border-b font-bold">Kereta & Rute</th>
-                                <th className="p-4 border-b font-bold">Penumpang</th>
-                                <th className="p-4 border-b font-bold text-right">Total Harga</th>
-                                <th className="p-4 border-b font-bold">Pembayaran</th>
-                                <th className="p-4 border-b font-bold text-center">Status Transaksi</th>
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider pl-6">Waktu Transaksi</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Booking Code</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Pemesan</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Kereta & Rute</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Penumpang</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Total Harga</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Pembayaran</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center pr-6">Status Transaksi</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-100">
                             {loading ? (
-                                <tr><td colSpan="8" className="p-8 text-center text-slate-500">Memuat data transaksi...</td></tr>
+                                <tr><td colSpan="8" className="p-8 text-center text-slate-500 text-sm">Memuat data transaksi...</td></tr>
                             ) : bookings.length === 0 ? (
-                                <tr><td colSpan="8" className="p-8 text-center text-slate-500">Belum ada transaksi.</td></tr>
+                                <tr><td colSpan="8" className="p-8 text-center text-slate-500 text-sm">Belum ada transaksi.</td></tr>
                             ) : (
                                 bookings.map((b) => (
-                                    <tr key={b.id} className="hover:bg-slate-50 border-b last:border-0 transition-colors">
-                                        <td className="p-4 text-sm text-slate-500">
+                                    <tr key={b.id} className="hover:bg-slate-50/50 transition-colors group">
+                                        <td className="p-4 pl-6 text-sm text-slate-600">
                                             {formatDate(b.created_at)}
                                         </td>
                                         <td className="p-4">
-                                            <span className="font-mono text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                            <span className="font-mono text-sm font-bold text-[#1800ad] bg-[#1800ad]/10 px-2 py-1 rounded border border-[#1800ad]/20">
                                                 {b.booking_code}
                                             </span>
                                         </td>
@@ -124,7 +123,7 @@ function AdminBookings() {
                                                 <span className="text-slate-400 italic text-xs">Belum ada metode</span>
                                             )}
                                         </td>
-                                        <td className="p-4 text-center">
+                                        <td className="p-4 pr-6 text-center">
                                             {getStatusBadge(b.status)}
                                         </td>
                                     </tr>

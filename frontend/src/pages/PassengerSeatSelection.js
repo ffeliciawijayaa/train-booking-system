@@ -5,11 +5,20 @@ import UserNavbar from "../components/UserNavbar";
 import Footer from "../components/Footer";
 import ProgressSteps from '../components/ProgressSteps';
 import { Trash2 } from 'lucide-react';
+import { usePopup } from '../components/PopupContext';
 
 function PassengerSeatSelection() {
+    const { showPopup } = usePopup();
     const { scheduleId } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
+
+    // Redirect admin agar tidak bisa pesan tiket
+    useEffect(() => {
+        if (localStorage.getItem('role') === 'admin') {
+            navigate('/admin/dashboard', { replace: true });
+        }
+    }, [navigate]);
 
     const boardOrder = searchParams.get('board_order');
     const alightOrder = searchParams.get('alight_order');
@@ -86,20 +95,6 @@ function PassengerSeatSelection() {
 
     if (loading) return <div className="p-8 text-center font-semibold text-slate-600">Memuat denah kursi...</div>;
 
-    const calculateDuration = (start, end) => {
-        if (!start || !end) return "";
-        const [startH, startM] = start.split(":").map(Number);
-        const [endH, endM] = end.split(":").map(Number);
-        let startTotalMins = startH * 60 + startM;
-        let endTotalMins = endH * 60 + endM;
-        if (endTotalMins < startTotalMins) endTotalMins += 24 * 60;
-        const diffMins = endTotalMins - startTotalMins;
-        const hours = Math.floor(diffMins / 60);
-        const mins = diffMins % 60;
-        if (hours > 0 && mins > 0) return `${hours}j ${mins < 10 ? '0' : ''}${mins}m`;
-        if (hours > 0) return `${hours}j`;
-        return `${mins}m`;
-    };
 
     const formatTime = (timeStr) => {
         if (!timeStr) return "";
@@ -153,7 +148,7 @@ function PassengerSeatSelection() {
             const adults = passengers.filter((p, i) => i !== index && p.type === 'dewasa').length;
             const infants = passengers.filter((p, i) => i !== index && p.type === 'infant').length;
             if (infants >= adults) {
-                alert("Jumlah bayi tidak boleh melebihi jumlah penumpang dewasa.");
+                showPopup("Jumlah bayi tidak boleh melebihi jumlah penumpang dewasa.");
                 return;
             }
         }
@@ -168,13 +163,13 @@ function PassengerSeatSelection() {
 
     const handleSeatClick = (seatCode) => {
         if (passengers[activePassengerIndex].type === 'infant') {
-            alert("Penumpang bayi tidak mendapatkan kursi. Silakan pilih tab penumpang dewasa terlebih dahulu.");
+            showPopup("Penumpang bayi tidak mendapatkan kursi. Silakan pilih tab penumpang dewasa terlebih dahulu.");
             return;
         }
 
         const isSeatTakenByUs = passengers.some((p, idx) => p.seat_number === seatCode && idx !== activePassengerIndex);
         if (isSeatTakenByUs) {
-            alert("Kursi ini sudah dipilih oleh penumpang lain di pesanan Anda.");
+            showPopup("Kursi ini sudah dipilih oleh penumpang lain di pesanan Anda.");
             return;
         }
 
@@ -198,19 +193,19 @@ function PassengerSeatSelection() {
         const niks = [];
         for (let p of passengers) {
             if (!p.name || !p.nik || (p.type === 'dewasa' && !p.seat_number)) {
-                alert("Mohon lengkapi semua data diri penumpang dan pilih nomor kursi untuk penumpang dewasa!");
+                showPopup("Mohon lengkapi semua data diri penumpang dan pilih nomor kursi untuk penumpang dewasa!");
                 return;
             }
             if (p.type === 'infant' && !p.birth_date) {
-                alert(`Mohon lengkapi tanggal lahir untuk penumpang bayi: ${p.name || 'Tanpa Nama'}!`);
+                showPopup(`Mohon lengkapi tanggal lahir untuk penumpang bayi: ${p.name || 'Tanpa Nama'}!`);
                 return;
             }
             if (p.nik.length !== 16) {
-                alert(`NIK untuk ${p.name} harus 16 digit!`);
+                showPopup(`NIK untuk ${p.name} harus 16 digit!`);
                 return;
             }
             if (niks.includes(p.nik)) {
-                alert(`NIK "${p.nik}" diinput lebih dari sekali. NIK setiap penumpang harus berbeda!`);
+                showPopup(`NIK "${p.nik}" diinput lebih dari sekali. NIK setiap penumpang harus berbeda!`);
                 return;
             }
             niks.push(p.nik);
@@ -218,7 +213,7 @@ function PassengerSeatSelection() {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            alert("Sesi Anda telah habis atau belum login. Silakan login kembali.");
+            showPopup("Sesi Anda telah habis atau belum login. Silakan login kembali.");
             navigate('/login');
             return;
         }
@@ -250,13 +245,13 @@ function PassengerSeatSelection() {
         } catch (error) {
             console.error("Detail Error:", error.response?.data);
             if (error.response?.status === 401) {
-                alert("Sesi login tidak valid. Silakan login ulang.");
+                showPopup("Sesi login tidak valid. Silakan login ulang.");
                 navigate('/login');
             } else if (error.response?.data?.errors) {
                 const msg = Object.values(error.response.data.errors).flat().join("\n");
-                alert(`Gagal Validasi Backend:\n${msg}`);
+                showPopup(`Gagal Validasi Backend:\n${msg}`);
             } else {
-                alert(error.response?.data?.message || "Gagal melakukan booking tiket.");
+                showPopup(error.response?.data?.message || "Gagal melakukan booking tiket.");
             }
         }
     };
@@ -282,7 +277,7 @@ function PassengerSeatSelection() {
                                     <button
                                         type="button"
                                         onClick={addPassenger}
-                                        className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-bold rounded border border-blue-200 transition-colors"
+                                        className="px-4 py-2 bg-[#1800ad]/5 hover:bg-[#1800ad]/10 text-[#1800ad] text-sm font-bold rounded border border-[#1800ad]/20 transition-colors"
                                     >
                                         + Tambah Orang
                                     </button>
@@ -293,13 +288,13 @@ function PassengerSeatSelection() {
                                         key={index}
                                         onClick={() => setActivePassengerIndex(index)}
                                         className={`p-4 rounded border mb-4 cursor-pointer transition-all ${activePassengerIndex === index
-                                            ? 'border-blue-500 bg-blue-50/20 ring-2 ring-blue-500/10'
+                                            ? 'border-[#1800ad] bg-[#1800ad]/5/20 ring-2 ring-[#1800ad]/10'
                                             : 'border-slate-200 hover:border-slate-300'
                                             }`}
                                     >
                                         <div className="flex justify-between items-center mb-3">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-sm font-bold text-blue-600">
+                                                <span className="text-sm font-bold text-[#1800ad]">
                                                     Penumpang {index + 1} {passenger.type === 'infant' && '(Bayi)'}
                                                 </span>
                                             </div>
@@ -416,7 +411,7 @@ function PassengerSeatSelection() {
                                             </div>
                                             <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-dashed">
                                                 <span>Total Bayar:</span>
-                                                <span className="text-blue-600">Rp {(scheduleDetail.price * adultCount).toLocaleString('id-ID')}</span>
+                                                <span className="text-[#1800ad]">Rp {(scheduleDetail.price * adultCount).toLocaleString('id-ID')}</span>
                                             </div>
                                         </div>
                                     );
@@ -424,7 +419,7 @@ function PassengerSeatSelection() {
 
                                 <button
                                     type="submit"
-                                    className="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded transition-colors"
+                                    className="w-full mt-4 py-3 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded transition-colors"
                                 >
                                     Lanjut Pembayaran
                                 </button>
@@ -482,7 +477,7 @@ function PassengerSeatSelection() {
                                     <span className="w-4 h-4 bg-emerald-500 rounded border"></span> Tersedia
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <span className="w-4 h-4 bg-blue-500 rounded border"></span> Pilihanmu
+                                    <span className="w-4 h-4 bg-[#1800ad] rounded border"></span> Pilihanmu
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                     <span className="w-4 h-4 bg-slate-300 rounded border"></span> Sudah Terisi
@@ -528,7 +523,7 @@ function PassengerSeatSelection() {
                                                             seatClass = 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed';
                                                         }
                                                     } else if (isSelectedByUs) {
-                                                        seatClass = 'bg-blue-600 border-blue-700 text-white shadow-md ring-2 ring-blue-300 ring-offset-1';
+                                                        seatClass = 'bg-[#1800ad] border-blue-700 text-white shadow-md ring-2 ring-blue-300 ring-offset-1';
                                                     }
 
                                                     return (

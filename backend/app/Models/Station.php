@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Station extends Model
 {
-    protected $fillable = ['station_code', 'name', 'city'];
+    protected $fillable = ['station_code', 'name', 'city', 'is_active'];
 
     // Relasi: Satu stasiun bisa dipakai di banyak rute pemberhentian
     public function routeStops(): HasMany

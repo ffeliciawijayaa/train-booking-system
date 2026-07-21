@@ -1,108 +1,164 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { usePopup } from './PopupContext';
+import axios from 'axios';
+import { 
+    LayoutDashboard, 
+    MapPin, 
+    Train, 
+    Calendar, 
+    Ticket, 
+    ShieldCheck, 
+    CreditCard, 
+    Users, 
+    UserCog, 
+    LogOut,
+    UserCircle
+} from 'lucide-react';
 
 function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
-    // State buat ngontrol buka-tutup sidebar di layar kecil
+    const { showConfirm } = usePopup();
     const [isOpen, setIsOpen] = useState(false);
+    const [adminName, setAdminName] = useState('Admin');
 
-    const handleExit = () => {
-        if (window.confirm('Apakah Anda yakin ingin keluar dari Dashboard Admin?')) {
-            // Karena tanpa login/token, langsung redirect saja ke halaman utama/awal
-            navigate('/');
+    useEffect(() => {
+        const fetchAdminProfile = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const res = await axios.get('http://127.0.0.1:8000/api/user', {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setAdminName(res.data.name || 'Admin');
+                } catch (err) {
+                    console.error("Gagal memuat profil admin", err);
+                }
+            }
+        };
+        fetchAdminProfile();
+    }, []);
+
+    const handleExit = async () => {
+        if (await showConfirm('Apakah Anda yakin ingin keluar dari Dashboard Admin?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            navigate('/search');
         }
     };
 
     const getLinkClass = (path) => {
-        const baseClass = "block px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 mb-2";
-        const activeClass = "bg-blue-600 text-white shadow-md shadow-blue-900/20";
-        const inactiveClass = "text-slate-400 hover:bg-slate-800 hover:text-white";
-        
+        const baseClass = "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 mb-1.5";
+        const activeClass = "bg-[#1800ad] text-white shadow-md shadow-[#1800ad]/20";
+        const inactiveClass = "text-slate-500 hover:bg-[#1800ad]/10 hover:text-[#1800ad]";
+
         return `${baseClass} ${location.pathname === path ? activeClass : inactiveClass}`;
     };
 
     return (
         <>
-            {/* Tombol Garis Tiga (Hanya muncul di layar kecil md ke bawah) */}
-            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-slate-900 border-b border-slate-800 flex items-center px-4 justify-between z-50 text-white">
-                <div className="flex flex-col">
-                    <h3 className="text-sm font-bold text-blue-500 uppercase tracking-wider">KAI Admin</h3>
+            <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-200 flex items-center px-4 justify-between z-50 text-slate-800">
+                <div className="flex items-center">
+                    <img src="/images/logo-black.png" alt="SobatRel Logo" className="h-auto w-28 object-contain" />
                 </div>
-                <button 
+                <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg focus:outline-none"
+                    className="p-2 text-slate-500 hover:text-slate-700 bg-slate-100 rounded-lg focus:outline-none"
                 >
                     {isOpen ? (
-                        // Icon silang (X) pas kebuka
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     ) : (
-                        // Icon garis 3 (Hamburger) pas ketutup
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     )}
                 </button>
             </div>
 
-            {/* Overlay background hitam transparan pas menu kebuka di layar kecil */}
             {isOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 z-40 md:hidden"
                     onClick={() => setIsOpen(false)}
                 ></div>
             )}
 
-            {/* Sidebar Utama */}
-            <div className={`w-60 bg-slate-900 h-screen p-6 fixed left-0 top-0 flex flex-col justify-between border-r border-slate-800 text-white select-none transition-transform duration-300 ease-in-out
+            <div className={`w-64 bg-white h-screen p-5 fixed left-0 top-0 flex flex-col justify-between border-r border-slate-100 text-slate-800 select-none transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-                md:translate-x-0 z-40 md:z-auto`}
+                md:translate-x-0 z-40 md:z-auto overflow-y-auto overflow-x-hidden scrollbar-hide`}
             >
-                {/* Bagian Atas: Menu Navigasi */}
-                <div className="mt-14 md:mt-0"> {/* Kasih jarak atas di mobile biar ga ketutupan header */}
-                    <div className="px-2 mb-8">
-                        <h3 className="text-lg font-bold tracking-wider text-blue-500 uppercase">
-                            KAI Admin
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-1">Management System</p>
+                <div className="mt-14 md:mt-0 flex flex-col h-full">
+                    <div className="px-3 mb-8 mt-4">
+                        <img src="/images/logo-black.png" alt="SobatRel Logo" className="h-auto w-40 object-contain" />
                     </div>
-                    
-                    <nav>
-                        <Link to="/admin/stations" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/stations')}>
-                            Kelola Stasiun
-                        </Link>
-                        <Link to="/admin/trains" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/trains')}>
-                            Kelola Kereta
-                        </Link>
-                        <Link to="/admin/schedules" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/schedules')}>
-                            Kelola Jadwal
-                        </Link>
-                        <Link to="/admin/bookings" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/bookings')}>
-                            Kelola Transaksi
-                        </Link>
-                        <Link to="/admin/protections" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/protections')}>
-                            Kelola Proteksi
-                        </Link>
-                        <Link to="/admin/payment-methods" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/payment-methods')}>
-                            Kelola Pembayaran
-                        </Link>
 
-                        <Link to="/admin/admins" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/admins')}>
-                            Kelola Admin
-                        </Link>
+                    <div className="flex-1 overflow-y-auto pr-2 pb-4">
+                        {/* MANAJEMEN GROUP */}
+                        <div className="mb-6">
+                            <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Manajemen</p>
+                            <nav>
+                                <Link to="/admin/dashboard" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/dashboard')}>
+                                    <LayoutDashboard className="w-4 h-4" />
+                                    <span>Dashboard</span>
+                                </Link>
+                                <Link to="/admin/stations" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/stations')}>
+                                    <MapPin className="w-4 h-4" />
+                                    <span>Stasiun</span>
+                                </Link>
+                                <Link to="/admin/trains" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/trains')}>
+                                    <Train className="w-4 h-4" />
+                                    <span>Kereta</span>
+                                </Link>
+                                <Link to="/admin/schedules" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/schedules')}>
+                                    <Calendar className="w-4 h-4" />
+                                    <span>Jadwal</span>
+                                </Link>
+                                <Link to="/admin/bookings" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/bookings')}>
+                                    <Ticket className="w-4 h-4" />
+                                    <span>Transaksi</span>
+                                </Link>
+                                <Link to="/admin/protections" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/protections')}>
+                                    <ShieldCheck className="w-4 h-4" />
+                                    <span>Proteksi</span>
+                                </Link>
+                                <Link to="/admin/payment-methods" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/payment-methods')}>
+                                    <CreditCard className="w-4 h-4" />
+                                    <span>Pembayaran</span>
+                                </Link>
+                            </nav>
+                        </div>
 
-                        <Link to="/admin/users" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/users')}>
-                            Kelola User
-                        </Link>
-                    </nav>
-                </div>
+                        {/* PENGGUNA GROUP */}
+                        <div className="mb-2">
+                            <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Pengguna</p>
+                            <nav>
+                                <Link to="/admin/users" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/users')}>
+                                    <Users className="w-4 h-4" />
+                                    <span>Pelanggan</span>
+                                </Link>
+                                <Link to="/admin/admins" onClick={() => setIsOpen(false)} className={getLinkClass('/admin/admins')}>
+                                    <UserCog className="w-4 h-4" />
+                                    <span>Admin</span>
+                                </Link>
+                            </nav>
+                        </div>
+                    </div>
 
-                {/* Bagian Bawah: Tombol Keluar */}
-                <div className="pt-4 border-t border-slate-800">
-                    <button 
-                        onClick={handleExit}
-                        className="w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-lg transition-colors duration-200 text-left shadow-sm"
-                    >
-                        Keluar
-                    </button>
+                    <div className="pt-5 border-t border-slate-100 mt-auto flex items-center justify-between px-1">
+                        <div className="flex items-center gap-3">
+                            <UserCircle className="w-9 h-9 text-slate-400" />
+                            <div className="flex flex-col">
+                                <span className="text-sm font-bold text-slate-800 line-clamp-1">{adminName}</span>
+                                <span className="text-[10px] text-slate-500 font-medium">Administrator</span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleExit}
+                            title="Keluar"
+                            className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </>

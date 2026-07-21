@@ -37,9 +37,13 @@ class AdminController extends Controller
             'station_code' => 'required|string|unique:stations,station_code',
             'name' => 'required|string',
             'city' => 'required|string',
+            'is_active' => 'boolean',
         ]);
 
-        $station = Station::create($request->all());
+        $data = $request->all();
+        $data['is_active'] = $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : true;
+
+        $station = Station::create($data);
 
         return response()->json([
             'status' => 'success',
@@ -56,9 +60,13 @@ class AdminController extends Controller
             'name' => 'required|string',
             'class' => 'required|in:executive,business,economy',
             'total_coaches' => 'required|integer|min:1',
+            'is_active' => 'boolean',
         ]);
 
-        $train = Train::create($request->all());
+        $data = $request->all();
+        $data['is_active'] = $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : true;
+
+        $train = Train::create($data);
 
         return response()->json([
             'status' => 'success',
@@ -181,6 +189,7 @@ class AdminController extends Controller
                 'station_code' => 'required|unique:stations,station_code,' . $id,
                 'name' => 'required',
                 'city' => 'required',
+                'is_active' => 'boolean',
             ]);
 
             $station = Station::find($id);
@@ -192,6 +201,7 @@ class AdminController extends Controller
                 'station_code' => $request->station_code,
                 'name' => $request->name,
                 'city' => $request->city,
+                'is_active' => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : $station->is_active,
             ]);
 
             return response()->json([
@@ -353,6 +363,7 @@ class AdminController extends Controller
                 'name' => 'required',
                 'class' => 'required|in:executive,business,economy',
                 'total_coaches' => 'required|integer|min:1',
+                'is_active' => 'boolean',
             ]);
 
             $train = Train::find($id);
@@ -365,6 +376,7 @@ class AdminController extends Controller
                 'name' => $request->name,
                 'class' => $request->class,
                 'total_coaches' => $request->total_coaches,
+                'is_active' => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : $train->is_active,
             ]);
 
             return response()->json([
@@ -611,18 +623,12 @@ class AdminController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|min:6',
-                'nik' => 'nullable|string|size:16|unique:users,nik',
-                'phone_number' => 'nullable|string|max:20',
-                'gender' => 'nullable|in:pria,wanita',
             ]);
 
             $admin = \App\Models\User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => \Illuminate\Support\Facades\Hash::make($request->password),
-                'nik' => $request->nik,
-                'phone_number' => $request->phone_number,
-                'gender' => $request->gender,
                 'role' => 'admin',
             ]);
 
@@ -641,17 +647,11 @@ class AdminController extends Controller
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email,' . $admin->id,
-                'nik' => 'nullable|string|size:16|unique:users,nik,' . $admin->id,
-                'phone_number' => 'nullable|string|max:20',
-                'gender' => 'nullable|in:pria,wanita',
             ]);
 
             $admin->update([
                 'name' => $request->name,
                 'email' => $request->email,
-                'nik' => $request->nik,
-                'phone_number' => $request->phone_number,
-                'gender' => $request->gender,
             ]);
 
             return response()->json([

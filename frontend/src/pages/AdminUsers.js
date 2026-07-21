@@ -4,22 +4,20 @@ import { Link } from 'react-router-dom';
 
 function AdminUsers() {
     const [users, setUsers] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
 
     const fetchUsers = async () => {
         try {
             const token = localStorage.getItem('token');
-
             const res = await axios.get(
                 'http://127.0.0.1:8000/api/admin/users',
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }
             );
-
             setUsers(res.data.data);
             setLoading(false);
-
         } catch (error) {
             console.error('Gagal mengambil data user:', error);
             setLoading(false);
@@ -30,97 +28,95 @@ function AdminUsers() {
         fetchUsers();
     }, []);
 
-
-
     return (
-        <div className="p-6 max-w-6xl mx-auto font-sans text-slate-800">
-            <div className="flex justify-between items-center mb-6">
+        <div className="p-6 md:p-8 font-sans text-slate-800">
+            
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">
-                        Kelola User
-                    </h1>
-
-                    <p className="text-slate-500 text-sm mt-1">
-                        Daftar seluruh pengguna yang terdaftar pada sistem.
-                    </p>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-1">Kelola Pelanggan</h2>
+                    <p className="text-slate-500 text-sm">Daftar seluruh pengguna yang terdaftar pada sistem.</p>
                 </div>
-
-                <Link
-                    to="/admin/schedules"
-                    className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors text-sm"
-                >
-                    Kembali ke Dashboard
-                </Link>
+                
             </div>
+    
 
-            <p className="text-sm text-slate-500 mb-4">
-                Total User: <span className="font-bold">{users.length}</span>
-            </p>
-
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-100 text-slate-600 text-sm">
-                            <th className="p-4 border-b font-bold">ID</th>
-                            <th className="p-4 border-b font-bold">Nama</th>
-                            <th className="p-4 border-b font-bold">Email</th>
-                            <th className="p-4 border-b font-bold">Nomor HP</th>
-                            <th className="p-4 border-b font-bold">Gender</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr>
-                                <td colSpan="5" className="p-4 text-center text-slate-500">
-                                    Memuat data...
-                                </td>
+            <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
+                <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h3 className="text-lg font-bold text-slate-800">Daftar Pelanggan</h3>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Cari nama..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1800ad] focus:bg-white transition-colors"
+                        />
+                        <svg className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider pl-6">ID</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nama</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Email</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nomor HP</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider pr-6">Gender</th>
                             </tr>
-                        ) : users.length === 0 ? (
-                            <tr>
-                                <td colSpan="5" className="p-4 text-center text-slate-500">
-                                    Belum ada user terdaftar.
-                                </td>
-                            </tr>
-                        ) : (
-                            users.map((user) => (
-                                <tr
-                                    key={user.id}
-                                    className="hover:bg-slate-50 border-b last:border-0 transition-colors"
-                                >
-                                    <td className="p-4 text-sm font-semibold">
-                                        {user.id}
-                                    </td>
-
-                                    <td className="p-4 text-sm font-semibold text-slate-800">
-                                        {user.name}
-                                    </td>
-
-                                    <td className="p-4 text-sm">
-                                        {user.email}
-                                    </td>
-
-                                    <td className="p-4 text-sm">
-                                        {user.phone_number || "-"}
-                                    </td>
-
-                                    <td className="p-4">
-                                        {user.gender === "pria" ? (
-                                            <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">
-                                                Pria
-                                            </span>
-                                        ) : user.gender === "wanita" ? (
-                                            <span className="px-3 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-semibold">
-                                                Wanita
-                                            </span>
-                                        ) : (
-                                            <span className="text-slate-400">-</span>
-                                        )}
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="5" className="p-8 text-center text-slate-500 text-sm">
+                                        Memuat data...
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : users.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="p-8 text-center text-slate-500 text-sm">
+                                        Belum ada user terdaftar.
+                                    </td>
+                                </tr>
+                            ) : (
+                                users.filter(s => (s.name || '').toLowerCase().includes(searchTerm.toLowerCase())).map((user) => (
+                                    <tr
+                                        key={user.id}
+                                        className="hover:bg-slate-50/50 transition-colors group"
+                                    >
+                                        <td className="p-4 pl-6 text-sm font-semibold text-slate-800">
+                                            {user.id}
+                                        </td>
+                                        <td className="p-4 text-sm font-bold text-slate-800">
+                                            {user.name}
+                                        </td>
+                                        <td className="p-4 text-sm text-slate-600">
+                                            {user.email}
+                                        </td>
+                                        <td className="p-4 text-sm text-slate-600">
+                                            {user.phone_number || "-"}
+                                        </td>
+                                        <td className="p-4 pr-6">
+                                            {user.gender === "pria" ? (
+                                                <span className="inline-block px-2.5 py-1 text-xs font-bold tracking-wide uppercase rounded-lg border bg-[#1800ad]/10 text-[#1800ad] border-[#1800ad]/20">
+                                                    Pria
+                                                </span>
+                                            ) : user.gender === "wanita" ? (
+                                                <span className="inline-block px-2.5 py-1 text-xs font-bold tracking-wide uppercase rounded-lg border bg-pink-50 text-pink-600 border-pink-100">
+                                                    Wanita
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400">-</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

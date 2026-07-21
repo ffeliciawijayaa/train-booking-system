@@ -97,9 +97,9 @@ function Cart() {
                     </div>
                     
                     <div className="flex items-center gap-3 text-slate-700">
-                        <div className="font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-100">{booking.board_station?.name}</div>
+                        <div className="font-semibold text-[#11007a] bg-[#1800ad]/5 px-3 py-1.5 rounded border border-blue-100">{booking.board_station?.name}</div>
                         <span className="text-slate-400">&rarr;</span>
-                        <div className="font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded border border-blue-100">{booking.alight_station?.name}</div>
+                        <div className="font-semibold text-[#11007a] bg-[#1800ad]/5 px-3 py-1.5 rounded border border-blue-100">{booking.alight_station?.name}</div>
                     </div>
                 </div>
 
@@ -128,7 +128,7 @@ function Cart() {
             <div className="flex-1 pt-32 pb-24 w-full">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-28 lg:px-32 space-y-8">
                     <div className="flex flex-col mb-4">
-                        <h1 className="text-2xl font-black text-blue-900 flex items-center gap-2">
+                        <h1 className="text-2xl font-black text-[#1800ad] flex items-center gap-2">
                             Keranjang Belanja
                         </h1>
                     </div>

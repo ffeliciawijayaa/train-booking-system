@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { usePopup } from '../components/PopupContext';
 
-function ForgotPassword() {
+function ForgotPassword() {    const { showPopup } = usePopup();
+
     const [email, setEmail] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -13,7 +15,7 @@ function ForgotPassword() {
         e.preventDefault();
 
         if (newPassword !== confirmPassword) {
-            alert("Konfirmasi password tidak cocok.");
+            showPopup("Konfirmasi password tidak cocok.");
             return;
         }
 
@@ -27,11 +29,11 @@ function ForgotPassword() {
                 }
             );
 
-            alert(response.data.message);
+            showPopup(response.data.message);
 
             navigate("/login");
         } catch (error) {
-            alert(
+            showPopup(
                 error.response?.data?.message ||
                 "Gagal mereset password."
             );
@@ -49,7 +51,7 @@ function ForgotPassword() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-br from-[#0a1128] via-[#0a1128]/80 to-transparent"></div>
                 <div className="relative z-10 p-12 flex flex-col w-full h-full text-white">
-                    <Link to="/login" className="text-white hover:text-blue-200 transition-colors w-fit">
+                    <Link to="/login" className="text-white hover:text-white/80 transition-colors w-fit">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
@@ -77,7 +79,7 @@ function ForgotPassword() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Masukkan Email Anda"
                                 required
-                                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
                             />
                         </div>
 
@@ -90,12 +92,12 @@ function ForgotPassword() {
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     placeholder="Minimal 8 karakter"
                                     required
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm pr-12"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm pr-12"
                                 />
                                 <button 
                                     type="button"
                                     onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-4 top-3 text-gray-400 hover:text-blue-600 transition-colors"
+                                    className="absolute right-4 top-3 text-gray-400 hover:text-[#1800ad] transition-colors"
                                     aria-label={showNewPassword ? "Sembunyikan password" : "Tampilkan password"}
                                 >
                                     {showNewPassword ? (
@@ -121,12 +123,12 @@ function ForgotPassword() {
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="Ulangi password baru"
                                     required
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm pr-12"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm pr-12"
                                 />
                                 <button 
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-4 top-3 text-gray-400 hover:text-blue-600 transition-colors"
+                                    className="absolute right-4 top-3 text-gray-400 hover:text-[#1800ad] transition-colors"
                                     aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"}
                                 >
                                     {showConfirmPassword ? (

@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import Modal from '../components/Modal';
+import { usePopup } from '../components/PopupContext';
 
 function AdminAccounts() {
     const [admins, setAdmins] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formData, setFormData] = useState({
         id: null,
         name: '',
         email: '',
-        password: '',
-        nik: '',
-        phone_number: '',
-        gender: ''
+        password: ''
     });
 
     const fetchAdmins = async () => {
@@ -47,11 +47,8 @@ function AdminAccounts() {
              id: admin.id,
             name: admin.name || '',
             email: admin.email || '',
-            password: '',
-            nik: admin.nik || '',
-            phone_number: admin.phone_number || '',
-            gender: admin.gender || ''
-        });
+            password: ''
+    });
         setIsFormOpen(true);
     };
 
@@ -60,11 +57,8 @@ function AdminAccounts() {
             id: null,
             name: '',
             email: '',
-            password: '',
-            nik: '',
-            phone_number: '',
-            gender: ''
-        });
+            password: ''
+    });
 
         setIsFormOpen(false);
     };
@@ -73,11 +67,7 @@ function AdminAccounts() {
         e.preventDefault();
         const token = localStorage.getItem('token');
 
-        // Validasi NIK
-        if (formData.nik && formData.nik.length !== 16) {
-            alert("NIK harus terdiri dari 16 digit.");
-            return;
-        }
+        
         try {
             if (formData.id) {
                 await axios.put(`http://127.0.0.1:8000/api/admin/admins/${formData.id}`, formData, {
@@ -114,32 +104,29 @@ function AdminAccounts() {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto font-sans text-slate-800">
-            <div className="flex justify-between items-center mb-6">
+        <div className="p-6 md:p-8 font-sans text-slate-800">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
-                   <h1 className="text-2xl font-bold text-slate-900">Kelola Admin</h1>
-                    <p className="text-slate-500 text-sm mt-1">Tambah, ubah, dan hapus akun admin.</p>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-1">Kelola Admin</h2>
+                    <p className="text-slate-500 text-sm">Kelola data akun administrator sistem.</p>
                 </div>
-                <div className="flex gap-3">
-                    <Link to="/admin/schedules" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors text-sm">
-                        Kembali ke Dashboard
-                    </Link>
-                    <button 
-                        onClick={() => {
-                            handleClose();
-                            setIsFormOpen(true);
-                        }}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm shadow-md"
-                    >
-                        + Tambah Admin
-                    </button>
-                </div>
+                <button
+                    onClick={() => {
+                        setFormData({ id: null, name: '', email: '', password: '' });
+                        setIsFormOpen(true);
+                    }}
+                    className="inline-flex items-center justify-center px-4 py-2 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold rounded-lg transition-all text-sm shadow-sm shadow-[#1800ad]/20"
+                >
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                    Tambah Admin
+                </button>
             </div>
 
-            {isFormOpen && (
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
-                    <h2 className="text-lg font-bold mb-4">{formData.id ? 'Edit Admin' : 'Tambah Admin'}</h2>
-                    <form onSubmit={handleSubmit} autoComplete="off" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <Modal isOpen={isFormOpen} onClose={handleClose} maxWidth="max-w-xl" title={formData.id ? "Edit Admin" : "Tambah Admin"}>
+<form onSubmit={handleSubmit} autoComplete="off">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         <div className="col-span-1">
                             <label className="block text-sm font-semibold mb-1">Nama</label>
                             <input 
@@ -178,76 +165,44 @@ function AdminAccounts() {
                                 required
                             />
                         </div>
-                        <div className="col-span-1">
-                            <label className="block text-sm font-semibold mb-1">
-                                NIK
-                            </label>
-
-                            <input
-                                type="text"
-                                name="nik"
-                                value={formData.nik}
-                                onChange={handleChange}
-                                maxLength={16}
-                                className="w-full border p-2 rounded-lg text-sm"
-                                placeholder="Masukkan NIK"
-                            />
-                        </div>
-
-                        <div className="col-span-1">
-                            <label className="block text-sm font-semibold mb-1">
-                                Nomor HP
-                            </label>
-
-                            <input
-                                type="text"
-                                name="phone_number"
-                                value={formData.phone_number}
-                                onChange={handleChange}
-                                className="w-full border p-2 rounded-lg text-sm"
-                                placeholder="Masukkan nomor HP"
-                            />
-                        </div>
-
-                        <div className="col-span-1">
-                            <label className="block text-sm font-semibold mb-1">
-                                Gender
-                            </label>
-
-                            <select
-                                name="gender"
-                                value={formData.gender}
-                                onChange={handleChange}
-                                className="w-full border p-2 rounded-lg text-sm"
-                            >
-                                <option value="">Pilih Gender</option>
-                                <option value="pria">Pria</option>
-                                <option value="wanita">Wanita</option>
-                            </select>
-                        </div>
                         
-                        <div className="col-span-1 md:col-span-2 flex gap-3 mt-4">
-                            <button type="button" onClick={handleClose} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-sm">Batal</button>
-                            <button type="submit" className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm shadow-md">Simpan Data</button>
-                        </div>
-                    </form>
-                </div>
-            )}
 
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                        
+
+                        
+                        
+                        </div><div className="flex gap-3 pt-4 border-t border-slate-100"><button type="submit" className="flex-1 py-2.5 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded-lg transition-colors">Simpan</button><button type="button" onClick={handleClose} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-lg transition-colors">Batal</button></div></form></Modal>
+
+            
+            <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
+                <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h3 className="text-lg font-bold text-slate-800">Daftar Admin</h3>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Cari admin..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1800ad] focus:bg-white transition-colors"
+                        />
+                        <svg className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-100 text-slate-600 text-sm">
-                            <th className="p-4 border-b font-bold">ID</th>
-                            <th className="p-4 border-b font-bold">Nama</th>
-                            <th className="p-4 border-b font-bold">Email</th>
-                            <th className="p-4 border-b font-bold">NIK</th>
-                            <th className="p-4 border-b font-bold">Nomor HP</th>
-                            <th className="p-4 border-b font-bold">Gender</th>
-                            <th className="p-4 border-b font-bold text-center">Aksi</th>
-                        </tr>
+                        
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider pl-6">ID</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nama</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Email</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center pr-6">Aksi</th>
+                            </tr>
+
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-slate-100">
                         {loading ? (
                             <tr>
                                 <td colSpan="7" className="p-4 text-center text-slate-500">
@@ -261,57 +216,24 @@ function AdminAccounts() {
                                 </td>
                             </tr>
                         ) : (
-                            admins.map((admin) => (
-                                <tr
-                                    key={admin.id}
-                                    className="hover:bg-slate-50 border-b last:border-0 transition-colors"
-                                >
-                                    <td className="p-4 text-sm font-semibold">
-                                        {admin.id}
-                                    </td>
-
-                                    <td className="p-4 text-sm font-bold text-blue-600">
-                                        {admin.name}
-                                    </td>
-
-                                    <td className="p-4 text-sm">
-                                        {admin.email}
-                                    </td>
-
-                                    <td className="p-4 text-sm">
-                                        {admin.nik || "-"}
-                                    </td>
-
-                                    <td className="p-4 text-sm">
-                                        {admin.phone_number || "-"}
-                                    </td>
-
-                                    <td className="p-4 text-sm">
-                                        {admin.gender || "-"}
-                                    </td>
-
-                                    <td className="p-4 text-center">
-                                        <div className="flex justify-center gap-2">
-                                            <button
-                                                onClick={() => handleEdit(admin)}
-                                                className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded font-semibold text-xs"
-                                            >
-                                                Edit
-                                            </button>
-
-                                            <button
-                                                onClick={() => handleDelete(admin.id)}
-                                                className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded font-semibold text-xs"
-                                            >
-                                                Hapus
-                                            </button>
-                                        </div>
+                            
+                            admins.filter(a => (a.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (a.email || '').toLowerCase().includes(searchTerm.toLowerCase())).map((admin) => (
+                                <tr key={admin.id} className="hover:bg-slate-50/50 transition-colors group">
+                                    <td className="p-4 pl-6 text-sm font-semibold text-slate-800">{admin.id}</td>
+                                    <td className="p-4 text-sm font-bold text-[#1800ad]">{admin.name}</td>
+                                    <td className="p-4 text-sm text-slate-600">{admin.email}</td>
+                                    <td className="p-4 pr-6 flex gap-2 justify-center items-center">
+                                            <button onClick={() => handleEdit(admin)} className="px-3 py-1.5 bg-[#1800ad]/10 text-[#1800ad] hover:bg-[#1800ad]/20 rounded-lg text-xs font-bold transition-colors">Edit</button>
+                                            <button onClick={() => handleDelete(admin.id)} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition-colors">Hapus</button>
+                                        
                                     </td>
                                 </tr>
                             ))
+
                         )}
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     );

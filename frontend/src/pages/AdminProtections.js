@@ -1,9 +1,14 @@
+import Modal from '../components/Modal';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { usePopup } from '../components/PopupContext';
 
 function AdminProtections() {
+    const { showPopup, showConfirm } = usePopup();
+
     const [protections, setProtections] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [formData, setFormData] = useState({
@@ -64,137 +69,156 @@ function AdminProtections() {
                 await axios.put(`http://127.0.0.1:8000/api/admin/protections/${formData.id}`, formData, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Proteksi berhasil diupdate!');
+                showPopup('Proteksi berhasil diupdate!');
             } else {
                 await axios.post('http://127.0.0.1:8000/api/admin/protections', formData, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Proteksi berhasil ditambahkan!');
+                showPopup('Proteksi berhasil ditambahkan!');
             }
             handleClose();
             fetchProtections();
         } catch (error) {
             console.error('Gagal menyimpan proteksi:', error);
-            alert('Gagal menyimpan data proteksi.');
+            showPopup('Gagal menyimpan data proteksi.');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Yakin ingin menghapus proteksi ini?')) return;
+        if (!await showConfirm('Yakin ingin menghapus proteksi ini?')) return;
         const token = localStorage.getItem('token');
         try {
             await axios.delete(`http://127.0.0.1:8000/api/admin/protections/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Proteksi berhasil dihapus!');
+            showPopup('Proteksi berhasil dihapus!');
             fetchProtections();
         } catch (error) {
             console.error('Gagal menghapus proteksi:', error);
-            alert('Gagal menghapus proteksi.');
+
+            showPopup('Gagal menghapus proteksi.');
         }
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto font-sans text-slate-800">
-            <div className="flex justify-between items-center mb-6">
+        <div className="p-6 md:p-8 font-sans text-slate-800">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Kelola Proteksi & Asuransi</h1>
-                    <p className="text-slate-500 text-sm mt-1">Atur asuransi yang bisa dibeli penumpang.</p>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-1">Proteksi Ekstra</h2>
+                    <p className="text-slate-500 text-sm">Kelola produk proteksi perjalanan.</p>
                 </div>
-                <div className="flex gap-3">
-                    <Link to="/admin/schedules" className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition-colors text-sm">
-                        Kembali ke Dashboard
-                    </Link>
-                    <button 
-                        onClick={() => setIsFormOpen(true)}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm shadow-md"
-                    >
-                        + Tambah Proteksi
-                    </button>
-                </div>
+                <button 
+                    onClick={() => {
+                        setFormData({
+                        id: null,
+                        name: '',
+                        price: '',
+                        description: '',
+                        is_active: true
+                    });
+                        setIsFormOpen(true);
+                    }} 
+                    className="inline-flex items-center justify-center px-4 py-2 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold rounded-lg transition-all text-sm shadow-sm shadow-[#1800ad]/20"
+                >
+                    <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                    Tambah Data
+                </button>
             </div>
 
-            {isFormOpen && (
-                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-6">
-                    <h2 className="text-lg font-bold mb-4">{formData.id ? 'Edit Proteksi' : 'Tambah Proteksi Baru'}</h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="col-span-1">
-                            <label className="block text-sm font-semibold mb-1">Nama Proteksi</label>
-                            <input 
-                                type="text" name="name" required value={formData.name} onChange={handleChange} 
-                                className="w-full border p-2 rounded-lg text-sm" placeholder="Misal: Asuransi Keterlambatan" 
-                            />
-                        </div>
-                        <div className="col-span-1">
-                            <label className="block text-sm font-semibold mb-1">Harga (Rp)</label>
-                            <input 
-                                type="number" name="price" required value={formData.price} onChange={handleChange} 
-                                className="w-full border p-2 rounded-lg text-sm" placeholder="10000" 
-                            />
-                        </div>
-                        <div className="col-span-1 md:col-span-2">
-                            <label className="block text-sm font-semibold mb-1">Deskripsi Singkat</label>
-                            <input 
-                                type="text" name="description" required value={formData.description} onChange={handleChange} 
-                                className="w-full border p-2 rounded-lg text-sm" placeholder="Jaminan 100% uang kembali jika terlambat." 
-                            />
-                        </div>
-                        <div className="col-span-1 md:col-span-2 flex items-center gap-2 mt-2">
-                            <input 
-                                type="checkbox" name="is_active" id="is_active"
-                                checked={formData.is_active} onChange={handleChange} 
-                                className="w-4 h-4 text-blue-600"
-                            />
-                            <label htmlFor="is_active" className="text-sm font-semibold cursor-pointer">Aktif (Tersedia untuk dibeli)</label>
-                        </div>
-                        <div className="col-span-1 md:col-span-2 flex gap-3 mt-4">
-                            <button type="button" onClick={handleClose} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg text-sm">Batal</button>
-                            <button type="submit" className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm shadow-md">Simpan Data</button>
-                        </div>
-                    </form>
-                </div>
-            )}
+            <Modal isOpen={isFormOpen} onClose={handleClose} maxWidth="max-w-md" title={formData.id ? "Edit Layanan Proteksi" : "Tambah Layanan Proteksi"}>
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Nama Proteksi:</label>
+                                <input
+                                    type="text" name="name" required value={formData.name} onChange={handleChange}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100 focus:bg-white transition-colors" placeholder="Misal: Asuransi Keterlambatan"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Harga (Rp):</label>
+                                <input
+                                    type="number" name="price" required value={formData.price} onChange={handleChange}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100 focus:bg-white transition-colors" placeholder="10000"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-slate-700 mb-2">Deskripsi Singkat:</label>
+                                <input
+                                    type="text" name="description" required value={formData.description} onChange={handleChange}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100 focus:bg-white transition-colors" placeholder="Jaminan 100% uang kembali jika terlambat."
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
+                                <input
+                                    type="checkbox" name="is_active" id="is_active"
+                                    checked={formData.is_active} onChange={handleChange}
+                                    className="w-4 h-4 text-[#1800ad] rounded border-slate-300"
+                                />
+                                <label htmlFor="is_active" className="text-sm font-semibold text-slate-700 cursor-pointer">Aktif (Tersedia untuk dibeli)</label>
+                            </div>
+                            <div className="flex flex-row gap-3 pt-4">
+                                <button type="submit" className="flex-1 py-2.5 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded-lg transition-colors">Simpan</button>
+                                <button type="button" onClick={handleClose} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-lg transition-colors">Batal</button>
+                            </div>
+                        </form>
+            </Modal>
 
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-100 text-slate-600 text-sm">
-                            <th className="p-4 border-b font-bold">ID</th>
-                            <th className="p-4 border-b font-bold">Nama Proteksi</th>
-                            <th className="p-4 border-b font-bold">Deskripsi</th>
-                            <th className="p-4 border-b font-bold">Harga</th>
-                            <th className="p-4 border-b font-bold">Status</th>
-                            <th className="p-4 border-b font-bold text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan="6" className="p-4 text-center text-slate-500">Memuat data...</td></tr>
-                        ) : protections.length === 0 ? (
-                            <tr><td colSpan="6" className="p-4 text-center text-slate-500">Belum ada proteksi terdaftar.</td></tr>
-                        ) : (
-                            protections.map((prot) => (
-                                <tr key={prot.id} className="hover:bg-slate-50 border-b last:border-0 transition-colors">
-                                    <td className="p-4 text-sm font-semibold">{prot.id}</td>
-                                    <td className="p-4 text-sm font-bold text-blue-600">{prot.name}</td>
-                                    <td className="p-4 text-sm text-slate-600">{prot.description}</td>
-                                    <td className="p-4 text-sm font-semibold text-amber-600">Rp {parseInt(prot.price).toLocaleString('id-ID')}</td>
-                                    <td className="p-4">
-                                        <span className={`px-2 py-1 text-xs font-bold rounded-md ${prot.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                                            {prot.is_active ? 'AKTIF' : 'NONAKTIF'}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-center">
-                                        <div className="flex justify-center gap-2">
-                                            <button onClick={() => handleEdit(prot)} className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded font-semibold text-xs transition-colors">Edit</button>
-                                            <button onClick={() => handleDelete(prot.id)} className="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded font-semibold text-xs transition-colors">Hapus</button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+            <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-slate-800">Daftar Proteksi</h3>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Cari nama..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#1800ad] focus:bg-white transition-colors"
+                        />
+                        <svg className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider pl-6">ID</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nama Proteksi</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Deskripsi</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Harga</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center pr-6">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr><td colSpan="6" className="p-8 text-center text-slate-500 text-sm">Memuat data...</td></tr>
+                            ) : protections.filter(s => (s.name || '').toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
+                                <tr><td colSpan="6" className="p-8 text-center text-slate-500 text-sm">Belum ada proteksi terdaftar.</td></tr>
+                            ) : (
+                                protections.filter(s => (s.name || '').toLowerCase().includes(searchTerm.toLowerCase())).map((prot) => (
+                                    <tr key={prot.id} className="hover:bg-slate-50/50 transition-colors group">
+                                        <td className="p-4 pl-6 text-sm font-semibold text-slate-800">{prot.id}</td>
+                                        <td className="p-4 text-sm font-bold text-slate-800">{prot.name}</td>
+                                        <td className="p-4 text-sm text-slate-600">{prot.description}</td>
+                                        <td className="p-4 text-sm font-semibold text-slate-800">Rp {parseInt(prot.price).toLocaleString('id-ID')}</td>
+                                        <td className="p-4">
+                                            <span className={`inline-block px-2.5 py-1 text-xs font-bold tracking-wide uppercase rounded-lg border ${prot.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                                {prot.is_active ? 'AKTIF' : 'NONAKTIF'}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 pr-6 flex gap-2 justify-center items-center">
+                                                <button onClick={() => handleEdit(prot)} className="px-3 py-1.5 bg-[#1800ad]/10 text-[#1800ad] hover:bg-[#1800ad]/20 rounded-lg text-xs font-bold transition-colors">Edit</button>
+                                                <button onClick={() => handleDelete(prot.id)} className="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition-colors">Hapus</button>
+                                            
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

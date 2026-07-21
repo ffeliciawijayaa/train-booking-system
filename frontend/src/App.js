@@ -19,12 +19,13 @@ import AdminBookings from './pages/AdminBookings';
 import AdminAccounts from "./pages/AdminAccounts";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminUsers from "./pages/AdminUsers";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function AdminLayout({ children }) {
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="flex min-h-screen bg-slate-50">
       <Navbar />
-      <div style={{ flex: 1, marginLeft: '240px', boxSizing: 'border-box' }}>
+      <div className="flex-1 md:ml-60 pt-16 md:pt-0 box-border w-full">
         {children}
       </div>
     </div>
@@ -75,6 +76,12 @@ function App() {
 
         {/* ==================== 3. RUTE KHUSUS ADMIN ==================== */}
         {/* Ditambahkan allowedRole="admin" agar user biasa tidak bisa nembak ke sini */}
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute allowedRole="admin">
+            <AdminLayout><AdminDashboard /></AdminLayout>
+          </ProtectedRoute>
+        } />
+        
         <Route path="/admin/stations" element={
           <ProtectedRoute allowedRole="admin">
             <AdminLayout><Stations /></AdminLayout>

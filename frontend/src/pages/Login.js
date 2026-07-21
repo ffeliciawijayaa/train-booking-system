@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false); // State baru buat toggle
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+    const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
+    const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     try {
@@ -21,9 +20,9 @@ function Login() {
       if (response.data.status === "success") {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("role", response.data.user.role);
-        alert(response.data.message);
+        
         if (response.data.user.role === "admin") {
-          window.location.href = "/admin/schedules";
+          window.location.href = "/admin/dashboard";
         } else {
           window.location.href = "/search";
         }
@@ -47,7 +46,7 @@ function Login() {
         <div className="relative z-10 p-12 flex flex-col w-full h-full text-white">
           <Link
             to="/"
-            className="text-white hover:text-blue-200 transition-colors w-fit"
+            className="text-white hover:text-white/80 transition-colors w-fit"
           >
             <svg
               className="w-6 h-6"
@@ -95,7 +94,7 @@ function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Masukkan Email Anda"
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
               />
             </div>
 
@@ -110,12 +109,12 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan kata sandi"
                   required
-                  className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-blue-600 focus:border-blue-600 outline-none transition-colors text-sm pr-12"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-3 text-gray-400 hover:text-blue-600 transition-colors"
+                  className="absolute right-4 top-3 text-gray-400 hover:text-[#1800ad] transition-colors"
                   aria-label={
                     showPassword ? "Sembunyikan password" : "Tampilkan password"
                   }
@@ -160,7 +159,7 @@ function Login() {
               <div className="text-right mt-2">
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-gray-500 hover:text-blue-600 transition-colors"
+                  className="text-xs text-gray-500 hover:text-[#1800ad] transition-colors"
                 >
                   Lupa Password?
                 </Link>

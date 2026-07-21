@@ -72,7 +72,7 @@ const StationSearchDropdown = ({
                             <input
                                 type="text"
                                 placeholder="Masukkan kota atau nama stasiun"
-                                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#1800ad]"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 autoFocus
@@ -119,6 +119,13 @@ const StationSearchDropdown = ({
 
 function UserDashboard() {
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (localStorage.getItem('role') === 'admin') {
+            navigate('/admin/dashboard', { replace: true });
+        }
+    }, [navigate]);
+
     const [stations, setStations] = useState([]);
     const [originId, setOriginId] = useState("");
     const [destinationId, setDestinationId] = useState("");
@@ -127,7 +134,6 @@ function UserDashboard() {
     const [tickets, setTickets] = useState([]);
     const [hasSearched, setHasSearched] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [qty, setQty] = useState(1);
 
     const [openFaq, setOpenFaq] = useState(null);
 
@@ -177,14 +183,7 @@ function UserDashboard() {
             .catch((err) => console.error(err));
     }, []);
 
-    // FUNGSI LOGOUT
-    const handleLogout = () => {
-        if (window.confirm("Apakah Anda yakin ingin keluar?")) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("role");
-            window.location.href = "/login";
-        }
-    };
+    // handleLogout dihapus karena deadcode
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -304,7 +303,7 @@ function UserDashboard() {
                                 label="Keberangkatan"
                                 value={originId}
                                 onChange={setOriginId}
-                                stations={stations}
+                                stations={stations.filter(s => s.is_active === 1 || s.is_active === true)}
                                 placeholder="Pilih Stasiun Asal"
                             />
 
@@ -319,7 +318,7 @@ function UserDashboard() {
                                 label="Tujuan"
                                 value={destinationId}
                                 onChange={setDestinationId}
-                                stations={stations}
+                                stations={stations.filter(s => s.is_active === 1 || s.is_active === true)}
                                 placeholder="Pilih Stasiun Tujuan"
                             />
 
@@ -343,7 +342,7 @@ function UserDashboard() {
                             <div className="w-full md:w-auto mt-2 md:mt-0">
                                 <button
                                     type="submit"
-                                    className="w-full md:w-auto px-10 py-5 bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm rounded shadow-lg shadow-blue-700/30 transition-all active:scale-[0.98] tracking-wide flex items-center justify-center h-full whitespace-nowrap"
+                                    className="w-full md:w-auto px-10 py-5 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded shadow-lg shadow-[#1800ad]/30 transition-all active:scale-[0.98] tracking-wide flex items-center justify-center h-full whitespace-nowrap"
                                 >
                                     Cari Kereta
                                 </button>
@@ -397,7 +396,7 @@ function UserDashboard() {
 
                             {loading && (
                                 <div className="p-12 text-center bg-white rounded border border-slate-100 shadow-sm">
-                                    <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded animate-spin mx-auto mb-4"></div>
+                                    <div className="w-12 h-12 border-4 border-[#1800ad]/20 border-t-blue-600 rounded animate-spin mx-auto mb-4"></div>
                                     <div className="text-slate-500 font-medium">
                                         Mencari tiket terbaik...
                                     </div>
@@ -480,7 +479,7 @@ function UserDashboard() {
                                                     <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                                                         Harga / Pax
                                                     </div>
-                                                    <div className="text-2xl font-black text-blue-600 mt-1">
+                                                    <div className="text-2xl font-black text-[#1800ad] mt-1">
                                                         Rp{ticket.price.toLocaleString("id-ID")}
                                                     </div>
                                                 </div>
@@ -494,7 +493,7 @@ function UserDashboard() {
                                                             return;
                                                         }
                                                         navigate(
-                                                            `/booking/${ticket.schedule_id || ticket.id}?board_order=${ticket.board_order}&alight_order=${ticket.alight_order}&qty=${qty}`,
+                                                            `/booking/${ticket.schedule_id || ticket.id}?board_order=${ticket.board_order}&alight_order=${ticket.alight_order}&qty=1`,
                                                         );
                                                     }}
                                                     className="px-8 py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded text-sm font-bold shadow-lg transition-transform active:scale-95 whitespace-nowrap"
@@ -518,7 +517,7 @@ function UserDashboard() {
                             <h3 className="text-4xl md:text-5xl font-medium text-slate-900 mb-6 tracking-tight">
                                 Mengapa{" "}
                                 <span className="font-black">
-                                    Sobat <span className="text-blue-600">Rel</span>
+                                    Sobat <span className="text-[#1800ad]">Rel</span>
                                 </span>
                                 ?
                             </h3>
@@ -531,9 +530,9 @@ function UserDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-3 relative z-10 md:divide-x md:divide-slate-200">
                             <div className="pb-12 md:pb-0 md:pr-12 border-b border-slate-200 md:border-b-0">
                                 <div className="relative w-16 h-16 mb-8">
-                                    <div className="absolute top-1 left-1 w-16 h-16 bg-blue-50 rounded-full"></div>
-                                    <div className="absolute top-0 left-0 w-16 h-16 bg-white rounded-full border-2 border-blue-900 flex items-center justify-center z-10">
-                                        <CalendarCheck className="w-7 h-7 text-blue-900 stroke-[1.5]" />
+                                    <div className="absolute top-1 left-1 w-16 h-16 bg-[#1800ad]/5 rounded-full"></div>
+                                    <div className="absolute top-0 left-0 w-16 h-16 bg-white rounded-full border-2 border-[#1800ad] flex items-center justify-center z-10">
+                                        <CalendarCheck className="w-7 h-7 text-[#1800ad] stroke-[1.5]" />
                                     </div>
                                 </div>
                                 <div className="text-slate-400 text-xs font-bold mb-3 tracking-widest uppercase">
@@ -550,9 +549,9 @@ function UserDashboard() {
 
                             <div className="py-12 md:py-0 md:px-12 border-b border-slate-200 md:border-b-0">
                                 <div className="relative w-16 h-16 mb-8">
-                                    <div className="absolute top-1 left-1 w-16 h-16 bg-blue-50 rounded-full"></div>
-                                    <div className="absolute top-0 left-0 w-16 h-16 bg-white rounded-full border-2 border-blue-900 flex items-center justify-center z-10">
-                                        <Banknote className="w-7 h-7 text-blue-900 stroke-[1.5]" />
+                                    <div className="absolute top-1 left-1 w-16 h-16 bg-[#1800ad]/5 rounded-full"></div>
+                                    <div className="absolute top-0 left-0 w-16 h-16 bg-white rounded-full border-2 border-[#1800ad] flex items-center justify-center z-10">
+                                        <Banknote className="w-7 h-7 text-[#1800ad] stroke-[1.5]" />
                                     </div>
                                 </div>
                                 <div className="text-slate-400 text-xs font-bold mb-3 tracking-widest uppercase">
@@ -569,9 +568,9 @@ function UserDashboard() {
 
                             <div className="pt-12 md:pt-0 md:pl-12">
                                 <div className="relative w-16 h-16 mb-8">
-                                    <div className="absolute top-1 left-1 w-16 h-16 bg-blue-50 rounded-full"></div>
-                                    <div className="absolute top-0 left-0 w-16 h-16 bg-white rounded-full border-2 border-blue-900 flex items-center justify-center z-10">
-                                        <TrainFront className="w-7 h-7 text-blue-900 stroke-[1.5]" />
+                                    <div className="absolute top-1 left-1 w-16 h-16 bg-[#1800ad]/5 rounded-full"></div>
+                                    <div className="absolute top-0 left-0 w-16 h-16 bg-white rounded-full border-2 border-[#1800ad] flex items-center justify-center z-10">
+                                        <TrainFront className="w-7 h-7 text-[#1800ad] stroke-[1.5]" />
                                     </div>
                                 </div>
                                 <div className="text-slate-400 text-xs font-bold mb-3 tracking-widest uppercase">
@@ -618,7 +617,7 @@ function UserDashboard() {
                                             onClick={() => toggleFaq(index)}
                                             className="w-full flex justify-between items-center text-left py-2 gap-4 outline-none group"
                                         >
-                                            <span className="font-bold text-slate-800 text-[15px] group-hover:text-blue-600 transition-colors">
+                                            <span className="font-bold text-slate-800 text-[15px] group-hover:text-[#1800ad] transition-colors">
                                                 {faq.question}
                                             </span>
                                             {openFaq === index ? (
@@ -649,7 +648,7 @@ function UserDashboard() {
                                             onClick={() => toggleFaq(index + 3)}
                                             className="w-full flex justify-between items-center text-left py-2 gap-4 outline-none group"
                                         >
-                                            <span className="font-bold text-slate-800 text-[15px] group-hover:text-blue-600 transition-colors">
+                                            <span className="font-bold text-slate-800 text-[15px] group-hover:text-[#1800ad] transition-colors">
                                                 {faq.question}
                                             </span>
                                             {openFaq === index + 3 ? (
