@@ -42,13 +42,18 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         
-        {/* Rute pencarian jadwal sekarang menjadi publik */}
-        <Route path="/search" element={<UserDashboard />} />
-
-
         {/* ==================== 2. RUTE KHUSUS USER / PENUMPANG ==================== */}
+        <Route path="/search" element={
+          <ProtectedRoute allowedRole="user" allowGuest={true}>
+            <UserDashboard />
+          </ProtectedRoute>
+        } />
 
-        <Route path="/booking/:scheduleId" element={<PassengerSeatSelection />} />
+        <Route path="/booking/:scheduleId" element={
+          <ProtectedRoute allowedRole="user">
+            <PassengerSeatSelection />
+          </ProtectedRoute>
+        } />
         
         <Route path="/payment/:bookingId" element={
           <ProtectedRoute allowedRole="user">

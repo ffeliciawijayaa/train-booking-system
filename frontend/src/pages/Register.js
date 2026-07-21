@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { usePopup } from '../components/PopupContext';
 
 function Register() {
+    const { showPopup } = usePopup();
     const [formData, setFormData] = useState({
         name: '',
         nik: '',
@@ -21,7 +23,7 @@ function Register() {
         e.preventDefault();
 
         if (formData.password !== confirmPassword) {
-            alert('Konfirmasi kata sandi tidak cocok.');
+            showPopup('Konfirmasi kata sandi tidak cocok.');
             return;
         }
 
@@ -36,10 +38,10 @@ function Register() {
                 birth_date: formData.birth_date
             });
 
-            alert(response.data.message);
+            showPopup(response.data.message);
             navigate('/login');
         } catch (error) {
-            alert(error.response?.data?.message || 'Registrasi gagal, periksa kembali data Anda.');
+            showPopup(error.response?.data?.message || 'Registrasi gagal, periksa kembali data Anda.');
         }
     };
 
@@ -72,114 +74,124 @@ function Register() {
                         <p className="text-sm text-gray-500">Nikmati pengalaman booking kereta yang lebih cepat dan nyaman.</p>
                     </div>
 
-                    <form onSubmit={handleRegister} className="space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Nama Lengkap</label>
-                                <input type="text" placeholder="Masukkan Nama Anda" className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">NIK (16 Digit)</label>
-                                <input type="text" placeholder="Masukkan NIK" maxLength={16} className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
-                                    onChange={(e) => setFormData({ ...formData, nik: e.target.value })} required />
-                            </div>
+                    <form onSubmit={handleRegister} className="space-y-4">
+                        {/* Nama Lengkap - Full Width */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Nama Lengkap</label>
+                            <input type="text" placeholder="Masukkan Nama Lengkap Anda" className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* NIK & No Telepon */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Email</label>
-                                <input type="email" placeholder="Email Anda" className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">NIK (16 Digit)</label>
+                                <input type="text" placeholder="Masukkan NIK" maxLength={16} className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
+                                    onChange={(e) => setFormData({ ...formData, nik: e.target.value })} required />
                             </div>
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">No. Telepon</label>
-                                <input type="text" placeholder="No Telepon" className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">No. Telepon</label>
+                                <input type="text" placeholder="No Telepon" className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
                                     onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })} required />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Jenis Kelamin & Tanggal Lahir - Di atas Email */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Kata Sandi</label>
-                                <div className="relative">
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Min 8 karakter"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm pr-10"
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })} required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-2 text-gray-400 hover:text-[#1800ad] transition-colors"
-                                    >
-                                        {showPassword ? (
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                                            </svg>
-                                        ) : (
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Ulangi Sandi</label>
-                                <div className="relative">
-                                    <input
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        placeholder="Ulangi sandi"
-                                        className="w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm pr-10"
-                                        onChange={(e) => setConfirmPassword(e.target.value)} required
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-2 text-gray-400 hover:text-[#1800ad] transition-colors"
-                                    >
-                                        {showConfirmPassword ? (
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                                            </svg>
-                                        ) : (
-                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Jenis Kelamin</label>
-                                <select className={`w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm bg-white ${!formData.gender ? 'text-gray-400' : 'text-gray-900'}`}
-                                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })} required value={formData.gender}>
-                                    <option value="" disabled>Pilih</option>
-                                    <option value="pria">Pria</option>
-                                    <option value="wanita">Wanita</option>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Jenis Kelamin</label>
+                                <select
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm text-gray-700 bg-white"
+                                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })} required>
+                                    <option value="">Pilih Jenis Kelamin</option>
+                                    <option value="pria">Laki-laki</option>
+                                    <option value="wanita">Perempuan</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-[11px] font-bold text-gray-500 uppercase mb-1 tracking-wider">Tanggal Lahir</label>
-                                <input type="date" className={`w-full px-3 py-2 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm bg-white ${!formData.birth_date ? 'text-gray-400' : 'text-gray-900'}`}
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Tanggal Lahir</label>
+                                <input type="date" className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm text-gray-700 bg-white"
                                     onChange={(e) => setFormData({ ...formData, birth_date: e.target.value })} required />
                             </div>
                         </div>
 
-                        <button type="submit" className="w-full py-2.5 bg-[#1800ad] text-white font-bold rounded-md hover:bg-[#11007a] transition-colors text-sm mt-4 shadow-lg shadow-[#1800ad]/30">
-                            Buat Akun
-                        </button>
+                        {/* Email - Full Width */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Email</label>
+                            <input type="email" placeholder="Email Anda" className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                        </div>
+
+                        {/* Kata Sandi - Full Width */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Kata Sandi</label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Min 8 karakter"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm pr-12"
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-3 text-gray-400 hover:text-[#1800ad] transition-colors"
+                                    aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
+                                >
+                                    {showPassword ? (
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Konfirmasi Sandi - Full Width */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Konfirmasi Sandi</label>
+                            <div className="relative">
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="Ulangi kata sandi"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm pr-12"
+                                    onChange={(e) => setConfirmPassword(e.target.value)} required />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-4 top-3 text-gray-400 hover:text-[#1800ad] transition-colors"
+                                    aria-label={showConfirmPassword ? "Sembunyikan password" : "Tampilkan password"}
+                                >
+                                    {showConfirmPassword ? (
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="pt-2">
+                            <button type="submit" className="w-full bg-[#1800ad] hover:bg-[#11007a] text-white py-3 rounded-md font-bold transition-colors text-sm shadow-lg shadow-[#1800ad]/30">
+                                Daftar Akun
+                            </button>
+                        </div>
                     </form>
 
-                    <div className="mt-8 text-center text-sm text-gray-500">
-                        Sudah punya akun? <Link to="/login" className="text-gray-900 font-bold hover:underline">Masuk</Link>
+                    <div className="mt-6 text-center text-sm text-gray-500">
+                        Sudah punya akun?{' '}
+                        <Link to="/login" className="text-[#1800ad] font-bold hover:underline">
+                            Masuk
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -40,6 +40,13 @@ function Stations() {
     };
 
     useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => setMessage(''), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
+
+    useEffect(() => {
         fetchStations();
     }, []);
 
@@ -135,9 +142,9 @@ function Stations() {
 
             <hr className="border-slate-200 mb-8" />
 
-            {/* Alert Message Box */}
+            {/* Alert Message Toast di Bawah */}
             {message && (
-                <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-xl mb-6 text-sm font-medium shadow-sm">
+                <div className="fixed bottom-6 right-6 z-50 p-4 bg-emerald-700 text-white border border-emerald-800 rounded-xl text-sm font-semibold shadow-xl transition-all">
                     {message}
                 </div>
             )}

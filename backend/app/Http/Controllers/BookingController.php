@@ -8,16 +8,16 @@ use App\Models\Payment;
 use App\Models\Schedule;
 use App\Models\Protection;
 use App\Models\PaymentMethod;
+use App\Services\FareService;
+use App\Services\SeatAvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BookingController extends Controller
 {
-    // =========================================================================
-    // 1. ENDPOINT MASTER DATA (Untuk dropdown/pilihan di Frontend)
-    // =========================================================================
-    
+
+    //dropdown fe
     public function getPaymentMethods()
     {
         $methods = PaymentMethod::where('is_active', true)->get();
@@ -30,13 +30,10 @@ class BookingController extends Controller
         return response()->json(['status' => 'success', 'data' => $protections]);
     }
 
-    // =========================================================================
-    // 2. ENDPOINT TRANSAKSI UTAMA
-    // =========================================================================
 
+//endpoint transaksi
     public function store(Request $request)
     {
-        // 1. Validasi input pesanan awal (Fokus pada data penumpang dan kursi saja)
         $request->validate([
             'schedule_id' => 'required|exists:schedules,id',
             'departure_station_id' => 'required|exists:stations,id',
@@ -51,7 +48,7 @@ class BookingController extends Controller
             'passengers.*.birth_date' => 'nullable|date',
         ]);
 
-        // 2. Ambil data urutan stasiun (angka penggaris)
+        //ambil data urutan stasiun
         $schedule = Schedule::with('routeStops')->findOrFail($request->schedule_id);
         $depStop = $schedule->routeStops->firstWhere('station_id', $request->departure_station_id);
         $arrStop = $schedule->routeStops->firstWhere('station_id', $request->arrival_station_id);
@@ -65,7 +62,7 @@ class BookingController extends Controller
 
         $userDepOrder = $depStop->stop_order;
         $userArrOrder = $arrStop->stop_order;
-        $ticketPricePerPassenger = $arrStop->price_from_start - $depStop->price_from_start;
+        $ticketPricePerPassenger = FareService::calculateFare($depStop, $arrStop);
         
         $adultPassengers = collect($request->passengers)->where('type', 'dewasa');
         $infantPassengers = collect($request->passengers)->where('type', 'infant');
@@ -79,18 +76,14 @@ class BookingController extends Controller
 
         $seatNumbers = $adultPassengers->pluck('seat_number')->filter()->toArray();
 
-        // 3. PROTEKSI BENTROK
-        $occupiedSeats = BookingDetail::join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
-            ->where('bookings.schedule_id', $request->schedule_id)
-            ->where('booking_details.coach_number', $request->coach_number)
-            ->whereIn('booking_details.seat_number', $seatNumbers)
-            ->whereIn('bookings.status', ['pending', 'completed'])
-            ->where(function($query) use ($userDepOrder, $userArrOrder) {
-                $query->where('bookings.board_order', '<', $userArrOrder)
-                      ->where('bookings.alight_order', '>', $userDepOrder);
-            })
-            ->pluck('booking_details.seat_number')
-            ->toArray();
+        //proteksi bentrok
+        $occupiedSeats = SeatAvailabilityService::getConflictingSeats(
+            $request->schedule_id,
+            $request->coach_number,
+            $seatNumbers,
+            $userDepOrder,
+            $userArrOrder
+        );
 
         if (!empty($seatNumbers) && !empty($occupiedSeats)) {
             return response()->json([
@@ -99,10 +92,9 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // --- TAMBAHAN PROTEKSI NIK ---
+        //nik unik
         $niks = collect($request->passengers)->pluck('nik')->toArray();
         
-        // 1. Cek apakah ada NIK yang dobel di input saat ini
         if (count($niks) !== count(array_unique($niks))) {
             return response()->json([
                 'status' => 'error',
@@ -110,13 +102,13 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // 2. Cek apakah NIK sudah pernah memesan jadwal yang sama dan belum dibatalkan
-        $duplicateNiks = BookingDetail::join('bookings', 'booking_details.booking_id', '=', 'bookings.id')
-            ->where('bookings.schedule_id', $request->schedule_id)
-            ->whereIn('booking_details.passenger_nik', $niks)
-            ->whereIn('bookings.status', ['pending', 'completed'])
-            ->pluck('booking_details.passenger_nik')
-            ->toArray();
+
+        $duplicateNiks = SeatAvailabilityService::getConflictingNiks(
+            $request->schedule_id,
+            $niks,
+            $userDepOrder,
+            $userArrOrder
+        );
 
         if (!empty($duplicateNiks)) {
             return response()->json([
@@ -124,13 +116,12 @@ class BookingController extends Controller
                 'message' => 'NIK berikut sudah terdaftar pada jadwal kereta ini: ' . implode(', ', array_unique($duplicateNiks)) . '. Satu NIK hanya boleh membeli tiket satu kali per jadwal.'
             ], 422);
         }
-        // -----------------------------
+   
 
         $totalPassengers = count($request->passengers);
         $totalAdults = $adultPassengers->count();
         $totalPrice = $ticketPricePerPassenger * $totalAdults;
 
-        // 4. TRANSACTION BLOCK: Menyimpan data secara atomik
         DB::beginTransaction();
         try {
             $booking = Booking::create([
@@ -164,7 +155,6 @@ class BookingController extends Controller
             Payment::create([
                 'booking_id' => $booking->id,
                 'payment_status' => 'pending',
-                // Batas waktu pemesanan diset 15 menit sesuai alur
                 'expired_at' => now()->addMinutes(15), 
             ]);
 
@@ -199,10 +189,17 @@ class BookingController extends Controller
             'payment',
             'boardStation', 
             'alightStation',
-            'protection' // Relasi proteksi diload agar tampil di review pesanan
+            'protection' 
         ])->findOrFail($id);
 
-        // Compute dynamic departure and arrival times based on board and alight order
+        if ($booking->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki akses ke pesanan ini.'
+            ], 403);
+        }
+
+
         $routeStops = collect($booking->schedule->routeStops ?? []);
         $boardStop = $routeStops->firstWhere('stop_order', $booking->board_order);
         $alightStop = $routeStops->firstWhere('stop_order', $booking->alight_order);
@@ -211,7 +208,7 @@ class BookingController extends Controller
             $booking->schedule->departure_time = $boardStop ? $boardStop->departure_time : null;
             $booking->schedule->arrival_time = $alightStop ? $alightStop->arrival_time : null;
             
-            // Clean up heavy routeStops array to keep response lean
+
             unset($booking->schedule->routeStops);
         }
 
@@ -230,8 +227,29 @@ class BookingController extends Controller
 
         $booking = Booking::with('payment')->findOrFail($id);
 
-        // Validasi pembatalan otomatis jika batas waktu 15 menit terlewati
-        if ($booking->status !== 'pending' || now()->greaterThan($booking->payment->expired_at)) {
+        if ($booking->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki akses ke pesanan ini.'
+            ], 403);
+        }
+
+        if ($booking->status === 'canceled') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pesanan telah dibatalkan.'
+            ], 422);
+        }
+
+        if ($booking->status === 'completed') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pesanan ini sudah dibayar.'
+            ], 400);
+        }
+
+        //pembatalan otomatis jika batas waktu 15 menit terlewati
+        if ($booking->status === 'pending' && now()->greaterThan($booking->payment->expired_at)) {
             $booking->update(['status' => 'canceled']);
             return response()->json([
                 'status' => 'error',
@@ -239,7 +257,7 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // Kalkulasi dinamis jika penumpang memilih asuransi perjalanan
+        //kalkulasi jika penumpang memilih asuransi perjalanan
         $protectionPrice = 0;
         if ($request->protection_id) {
             $protection = Protection::where('id', $request->protection_id)->where('is_active', true)->first();
@@ -254,11 +272,11 @@ class BookingController extends Controller
 
         DB::beginTransaction();
         try {
-            // Update status booking (dan total harga baru jika pakai asuransi)
+            //uppdate status booking (dan total harga baru jika pakai asuransi)
             $booking->status = 'completed';
             $booking->save();
 
-            // Update log pembayaran
+            //update log pembayaran
             $booking->payment->update([
                 'payment_method' => $request->payment_method,
                 'payment_status' => 'paid',
@@ -280,5 +298,40 @@ class BookingController extends Controller
                 'message' => 'Gagal memproses pembayaran: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function ticket($id)
+    {
+        $booking = Booking::with([
+            'schedule.train',
+            'schedule.routeStops',
+            'bookingDetails',
+            'payment',
+            'boardStation',
+            'alightStation',
+            'protection'
+        ])->findOrFail($id);
+
+        if ($booking->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak memiliki akses ke tiket ini.'
+            ], 403);
+        }
+
+        $routeStops = collect($booking->schedule->routeStops ?? []);
+        $boardStop = $routeStops->firstWhere('stop_order', $booking->board_order);
+        $alightStop = $routeStops->firstWhere('stop_order', $booking->alight_order);
+
+        if ($booking->schedule) {
+            $booking->schedule->departure_time = $boardStop ? $boardStop->departure_time : null;
+            $booking->schedule->arrival_time = $alightStop ? $alightStop->arrival_time : null;
+            unset($booking->schedule->routeStops);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $booking
+        ]);
     }
 }

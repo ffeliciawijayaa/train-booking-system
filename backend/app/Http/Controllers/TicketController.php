@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Schedule;
 use App\Models\BookingDetail;
+use App\Services\FareService;
+use App\Services\SeatAvailabilityService;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
@@ -38,7 +40,7 @@ class TicketController extends Controller
             $depStop = $schedule->routeStops->firstWhere('station_id', $departureId);
             $arrStop = $schedule->routeStops->firstWhere('station_id', $arrivalId);
 
-            $finalPrice = $arrStop->price_from_start - $depStop->price_from_start;
+            $finalPrice = FareService::calculateFare($depStop, $arrStop);
 
             return [
                 'schedule_id' => $schedule->id,
@@ -65,17 +67,8 @@ class TicketController extends Controller
         $userBoardOrder = $request->query('board_order');
         $userAlightOrder = $request->query('alight_order');
 
-        // Cari kursi yang bentrok berdasarkan rumus penggaris
-        $occupiedSeats = BookingDetail::whereHas('booking', function ($query) use ($scheduleId, $userBoardOrder, $userAlightOrder) {
-            $query->where('schedule_id', $scheduleId)
-                ->whereIn('status', ['pending', 'completed']) // Ambil yang sukses atau masih pending checkout
-                ->where(function ($q) use ($userBoardOrder, $userAlightOrder) {
-                    // Rumus Overlap: (Naik User < Turun Lama) DAN (Turun User > Naik Lama)
-                    $q->where('board_order', '<', $userAlightOrder)
-                        ->where('alight_order', '>', $userBoardOrder);
-                });
-        })
-        ->get(['coach_number', 'seat_number', 'passenger_gender']); // Cukup ambil nomor gerbong, kursi, dan gender
+        // Cari kursi yang bentrok menggunakan SeatAvailabilityService
+        $occupiedSeats = SeatAvailabilityService::getOccupiedSeats($scheduleId, $userBoardOrder, $userAlightOrder);
 
         return response()->json([
             'occupied_seats' => $occupiedSeats
@@ -92,11 +85,8 @@ class TicketController extends Controller
         $depStop = $schedule->routeStops->firstWhere('stop_order', $boardOrder);
         $arrStop = $schedule->routeStops->firstWhere('stop_order', $alightOrder);
 
-        // Rumus hitung harga parsial (Sama seperti di fungsi search)
-        $price = 0;
-        if ($depStop && $arrStop) {
-            $price = $arrStop->price_from_start - $depStop->price_from_start;
-        }
+        // Hitung harga parsial menggunakan FareService
+        $price = FareService::calculateFare($depStop, $arrStop);
 
         return response()->json([
             'status' => 'success',

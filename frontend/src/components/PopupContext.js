@@ -79,11 +79,11 @@ export const PopupProvider = ({ children }) => {
                             <Info size={40} color="#1800ad" style={{ marginBottom: '16px' }} />
                         )}
                         
-                        <p style={{ margin: 0, textAlign: 'center', fontSize: '16px', color: '#333', marginBottom: '20px', wordWrap: 'break-word', width: '100%' }}>
+                        <p style={{ margin: 0, textAlign: 'center', fontSize: '16px', color: '#333', marginBottom: popup.isConfirm ? '20px' : '10px', wordWrap: 'break-word', width: '100%' }}>
                             {popup.message}
                         </p>
                         
-                        {popup.isConfirm ? (
+                        {popup.isConfirm && (
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <button
                                     onClick={closePopup}
@@ -114,21 +114,6 @@ export const PopupProvider = ({ children }) => {
                                     Ya
                                 </button>
                             </div>
-                        ) : (
-                            <button
-                                onClick={closePopup}
-                                style={{
-                                    padding: '8px 24px',
-                                    backgroundColor: '#1800ad',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                Tutup
-                            </button>
                         )}
                     </div>
                 </div>

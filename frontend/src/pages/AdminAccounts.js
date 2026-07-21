@@ -5,6 +5,7 @@ import Modal from '../components/Modal';
 import { usePopup } from '../components/PopupContext';
 
 function AdminAccounts() {
+    const { showPopup, showConfirm } = usePopup();
     const [admins, setAdmins] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
@@ -73,33 +74,34 @@ function AdminAccounts() {
                 await axios.put(`http://127.0.0.1:8000/api/admin/admins/${formData.id}`, formData, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Admin berhasil diupdate!');
+                showPopup('Admin berhasil diupdate!');
             } else {
                 await axios.post('http://127.0.0.1:8000/api/admin/admins', formData, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Admin berhasil ditambahkan!');
+                showPopup('Admin berhasil ditambahkan!');
             }
             handleClose();
             fetchAdmins();
         } catch (error) {
             console.error('Gagal menyimpan Admin:', error);
-            alert('Gagal menyimpan data Admin.');
+            showPopup('Gagal menyimpan data Admin.');
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Yakin ingin menghapus Admin ini?')) return;
-        const token = localStorage.getItem('token');
-        try {
-            await axios.delete(`http://127.0.0.1:8000/api/admin/admins/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            alert('Admin berhasil dihapus!');
-            fetchAdmins();
-        } catch (error) {
-            console.error('Gagal menghapus Admin:', error);
-            alert('Gagal menghapus Admin.');
+        if (await showConfirm('Yakin ingin menghapus Admin ini?')) {
+            const token = localStorage.getItem('token');
+            try {
+                await axios.delete(`http://127.0.0.1:8000/api/admin/admins/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                showPopup('Admin berhasil dihapus!');
+                fetchAdmins();
+            } catch (error) {
+                console.error('Gagal menghapus Admin:', error);
+                showPopup('Gagal menghapus Admin.');
+            }
         }
     };
 

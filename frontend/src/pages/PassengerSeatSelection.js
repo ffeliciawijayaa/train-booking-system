@@ -4,21 +4,17 @@ import axios from 'axios';
 import UserNavbar from "../components/UserNavbar";
 import Footer from "../components/Footer";
 import ProgressSteps from '../components/ProgressSteps';
-import { Trash2 } from 'lucide-react';
 import { usePopup } from '../components/PopupContext';
+import { formatTime } from '../utils/dateUtils';
+import { getCoachLayout } from '../utils/seatLayoutUtils';
+import SeatMapGrid from '../components/booking/SeatMapGrid';
+import PassengerFormSection from '../components/booking/PassengerFormSection';
 
 function PassengerSeatSelection() {
     const { showPopup } = usePopup();
     const { scheduleId } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-
-    // Redirect admin agar tidak bisa pesan tiket
-    useEffect(() => {
-        if (localStorage.getItem('role') === 'admin') {
-            navigate('/admin/dashboard', { replace: true });
-        }
-    }, [navigate]);
 
     const boardOrder = searchParams.get('board_order');
     const alightOrder = searchParams.get('alight_order');
@@ -59,7 +55,7 @@ function PassengerSeatSelection() {
                             ...updated[0],
                             name: res.data.name || '',
                             nik: res.data.nik || '',
-                            gender: res.data.gender || 'pria' // tetapkan dari profil, hidden dari UI
+                            gender: res.data.gender || 'pria'
                         };
                         return updated;
                     });
@@ -96,11 +92,7 @@ function PassengerSeatSelection() {
     if (loading) return <div className="p-8 text-center font-semibold text-slate-600">Memuat denah kursi...</div>;
 
 
-    const formatTime = (timeStr) => {
-        if (!timeStr) return "";
-        const timePart = timeStr.includes(" ") ? timeStr.split(" ")[1] : timeStr;
-        return timePart.split(":").slice(0, 2).join(".");
-    };
+
 
     const formattedJourneyDate = scheduleDetail?.journey_date
         ? new Date(scheduleDetail.journey_date).toLocaleDateString("id-ID", {
@@ -113,16 +105,7 @@ function PassengerSeatSelection() {
     const trainClass = (scheduleDetail?.train?.class || scheduleDetail?.train_class || 'economy').toLowerCase();
     const totalCoaches = scheduleDetail?.train?.total_coaches || 2;
 
-    let rows = 16;
-    let seatLetters = ['A', 'B', 'C', 'D', 'E'];
-
-    if (trainClass === 'executive') {
-        rows = 12;
-        seatLetters = ['A', 'B', 'C', 'D'];
-    } else if (trainClass === 'business') {
-        rows = 16;
-        seatLetters = ['A', 'B', 'C', 'D'];
-    }
+    const { rows, seatLetters, aisleIndex } = getCoachLayout(trainClass);
 
     const addPassenger = () => {
         setPassengers([...passengers, { name: '', nik: '', gender: 'pria', type: 'dewasa', seat_number: '', birth_date: '' }]);
@@ -270,287 +253,36 @@ function PassengerSeatSelection() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         {/* ================= BARIS KIRI: FORM DATA PENUMPANG ================= */}
-                        <div className="lg:col-span-5 space-y-6">
-                            <form onSubmit={handleCheckout} className="bg-white p-6 rounded shadow-sm border border-slate-200">
-                                <div className="flex justify-between items-center mb-4 border-b border-slate-200 pb-3">
-                                    <h3 className="text-lg font-bold text-slate-900">Informasi Penumpang</h3>
-                                    <button
-                                        type="button"
-                                        onClick={addPassenger}
-                                        className="px-4 py-2 bg-[#1800ad]/5 hover:bg-[#1800ad]/10 text-[#1800ad] text-sm font-bold rounded border border-[#1800ad]/20 transition-colors"
-                                    >
-                                        + Tambah Orang
-                                    </button>
-                                </div>
-
-                                {passengers.map((passenger, index) => (
-                                    <div
-                                        key={index}
-                                        onClick={() => setActivePassengerIndex(index)}
-                                        className={`p-4 rounded border mb-4 cursor-pointer transition-all ${activePassengerIndex === index
-                                            ? 'border-[#1800ad] bg-[#1800ad]/5/20 ring-2 ring-[#1800ad]/10'
-                                            : 'border-slate-200 hover:border-slate-300'
-                                            }`}
-                                    >
-                                        <div className="flex justify-between items-center mb-3">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm font-bold text-[#1800ad]">
-                                                    Penumpang {index + 1} {passenger.type === 'infant' && '(Bayi)'}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="flex items-center gap-2">
-                                                {passenger.type === 'infant' ? (
-                                                    <span className="text-xs px-2.5 py-1 rounded font-bold bg-slate-100 text-slate-500">
-                                                        Tanpa Kursi
-                                                    </span>
-                                                ) : (
-                                                    <span className={`text-xs px-2.5 py-1 rounded font-bold ${passenger.seat_number ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                                                        Kursi: {passenger.seat_number || 'Belum Pilih'}
-                                                    </span>
-                                                )}
-                                                
-                                                {passengers.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => removePassenger(index, e)}
-                                                        className="text-red-500 hover:text-red-600 transition-colors ml-1 p-1"
-                                                        title="Hapus Penumpang"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <div>
-                                                <label className="block text-xs font-semibold text-slate-600 mb-1">Tipe Penumpang</label>
-                                                <select
-                                                    value={passenger.type}
-                                                    onChange={(e) => handlePassengerInfoChange(index, 'type', e.target.value)}
-                                                    className="appearance-none w-full px-3 py-2 pr-8 border border-slate-200 rounded text-sm bg-white focus:outline-blue-500 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center]"
-                                                >
-                                                    <option value="dewasa">Dewasa</option>
-                                                    <option value="infant">Bayi (&lt; 3 Tahun)</option>
-                                                </select>
-                                            </div>
-
-                                            {passenger.type === 'infant' && (
-                                                <div className="p-3 bg-slate-100 rounded text-xs font-medium text-slate-600 leading-relaxed mb-2">
-                                                    Peraturan: <br></br>Bayi/Infant tidak dikenakan biaya tiket dan tidak mendapatkan kursi.
-                                                </div>
-                                            )}
-
-                                            {passenger.type === 'infant' && (
-                                                <div>
-                                                    <label className="block text-xs font-semibold text-slate-600 mb-1">Tanggal Lahir Bayi</label>
-                                                    <input
-                                                        type="date"
-                                                        required
-                                                        max={new Date().toISOString().split("T")[0]}
-                                                        min={new Date(new Date().setFullYear(new Date().getFullYear() - 3)).toISOString().split("T")[0]}
-                                                        value={passenger.birth_date || ''}
-                                                        onChange={(e) => handlePassengerInfoChange(index, 'birth_date', e.target.value)}
-                                                        className="w-full px-3 py-2 border rounded text-sm bg-white focus:outline-blue-500 text-slate-700"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            <div>
-                                                <label className="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap (Sesuai KTP)</label>
-                                                <input
-                                                    type="text"
-                                                    required
-                                                    value={passenger.name}
-                                                    onChange={(e) => handlePassengerInfoChange(index, 'name', e.target.value)}
-                                                    className="w-full px-3 py-2 border rounded text-sm bg-white focus:outline-blue-500"
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="block text-xs font-semibold text-slate-600 mb-1">NIK (16 Digit)</label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        maxLength={16}
-                                                        value={passenger.nik}
-                                                        onChange={(e) => handlePassengerInfoChange(index, 'nik', e.target.value.replace(/[^0-9]/g, ''))}
-                                                        className="w-full px-3 py-2 border rounded text-sm bg-white focus:outline-blue-500"
-                                                    />
-                                                </div>
-                                                {passenger.type === 'dewasa' && (
-                                                    <div>
-                                                        <label className="block text-xs font-semibold text-slate-600 mb-1">Jenis Kelamin</label>
-                                                        <select
-                                                            value={passenger.gender}
-                                                            onChange={(e) => handlePassengerInfoChange(index, 'gender', e.target.value)}
-                                                            className="w-full appearance-none px-3 py-2 pr-8 border border-slate-300 rounded text-sm text-slate-800 bg-white focus:outline-blue-500 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.75rem_center]"
-                                                        >
-                                                            <option value="pria">Laki-laki</option>
-                                                            <option value="wanita">Perempuan</option>
-                                                        </select>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {scheduleDetail?.price && (() => {
-                                    const adultCount = passengers.filter(p => p.type === 'dewasa').length;
-                                    return (
-                                        <div className="mt-4 p-3 bg-slate-50 rounded border border-slate-200 text-sm space-y-1.5">
-                                            <div className="flex justify-between text-slate-600">
-                                                <span>Harga per tiket</span>
-                                                <span className="font-semibold text-slate-800">Rp {scheduleDetail.price.toLocaleString('id-ID')}</span>
-                                            </div>
-                                            <div className="flex justify-between text-slate-600">
-                                                <span>Jumlah Penumpang Dewasa</span>
-                                                <span className="font-semibold text-slate-800">{adultCount}x</span>
-                                            </div>
-                                            <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-dashed">
-                                                <span>Total Bayar:</span>
-                                                <span className="text-[#1800ad]">Rp {(scheduleDetail.price * adultCount).toLocaleString('id-ID')}</span>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
-
-                                <button
-                                    type="submit"
-                                    className="w-full mt-4 py-3 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded transition-colors"
-                                >
-                                    Lanjut Pembayaran
-                                </button>
-                            </form>
-                        </div>
+                        <PassengerFormSection
+                            passengers={passengers}
+                            activePassengerIndex={activePassengerIndex}
+                            setActivePassengerIndex={setActivePassengerIndex}
+                            onAddPassenger={addPassenger}
+                            onRemovePassenger={removePassenger}
+                            onPassengerChange={handlePassengerInfoChange}
+                            scheduleDetail={scheduleDetail}
+                            onSubmit={handleCheckout}
+                        />
 
                         {/* ================= BARIS KANAN: DENAH KURSI DINAMIS ================= */}
-                        <div className="lg:col-span-7 bg-white p-6 rounded shadow-sm border border-slate-200">
-                            <div className="flex flex-wrap justify-between items-center border-b border-slate-200 pb-4 mb-6 gap-3">
-                                <div>
-                                    <h3 className="text-lg font-bold text-slate-900">Denah Sisi Dalam Gerbong</h3>
-                                    <p className="text-sm text-slate-500 mt-1">
-                                        Kereta <span className="font-semibold text-slate-800">{scheduleDetail?.train?.name}</span> ({trainClass.charAt(0).toUpperCase() + trainClass.slice(1)})
-                                    </p>
-                                    <div className="mt-3">
-                                        <div className="text-xs font-medium text-slate-500 mb-1">
-                                            {formattedJourneyDate || '-'}
-                                        </div>
-                                        <div className="flex items-start gap-5 mt-1">
-                                            <div className="flex flex-col">
-                                                <span className="text-lg font-bold text-slate-900 leading-tight">{formatTime(scheduleDetail?.departure_time)}</span>
-                                                <span className="text-[13px] text-slate-500 mt-0.5">{scheduleDetail?.departure_station_name} ({scheduleDetail?.departure_station_code})</span>
-                                            </div>
-                                            <div className="text-slate-400 text-sm font-bold mt-1">
-                                                →
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-lg font-bold text-slate-900 leading-tight">{formatTime(scheduleDetail?.arrival_time)}</span>
-                                                <span className="text-[13px] text-slate-500 mt-0.5">{scheduleDetail?.arrival_station_name} ({scheduleDetail?.arrival_station_code})</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <label className="text-xs font-bold text-slate-600">Pilih Gerbong:</label>
-                                    <select
-                                        value={currentCoach}
-                                        onChange={(e) => {
-                                            setCurrentCoach(parseInt(e.target.value));
-                                            // Reset kursi jika pindah gerbong karena 1 transaksi = 1 gerbong (saat ini)
-                                            setPassengers(passengers.map(p => ({ ...p, seat_number: '' })));
-                                        }}
-                                        className="appearance-none px-3 py-2 pr-8 border border-slate-200 rounded text-xs font-semibold bg-white focus:outline-blue-500 bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2394a3b8%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.5rem_center]"
-                                    >
-                                        {Array.from({ length: totalCoaches }, (_, i) => (
-                                            <option key={i + 1} value={i + 1}>Gerbong {i + 1}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4 justify-center text-xs mb-6 font-medium text-slate-600 bg-slate-50 p-3 rounded border">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="w-4 h-4 bg-emerald-500 rounded border"></span> Tersedia
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="w-4 h-4 bg-[#1800ad] rounded border"></span> Pilihanmu
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="w-4 h-4 bg-slate-300 rounded border"></span> Sudah Terisi
-                                </div>
-                                {userGender === 'wanita' && (
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="w-4 h-4 bg-pink-100 rounded border border-pink-200 text-pink-500 flex items-center justify-center font-bold text-[8px]">W</span> Sudah Terisi (Wanita)
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="border border-slate-200 rounded p-6 bg-slate-50/50">
-                                <div className="text-center text-xs font-bold uppercase tracking-wider text-slate-400 mb-6 border-b border-dashed pb-2">
-                                    Arah Depan
-                                </div>
-
-                                <div className="space-y-3">
-                                    {Array.from({ length: rows }, (_, rowIndex) => {
-                                        const rowNum = rowIndex + 1;
-                                        return (
-                                            <div key={rowNum} className="flex justify-center items-center gap-3">
-                                                <span className="w-6 text-center text-xs font-bold text-slate-400">{rowNum}</span>
-
-                                                {seatLetters.map((letter, letterIdx) => {
-                                                    const seatCode = `${rowNum}${letter}`;
-
-                                                    const occupiedSeat = occupiedSeats.find(
-                                                        (s) => parseInt(s.coach_number) === currentCoach && s.seat_number === seatCode
-                                                    );
-
-                                                    const isOccupied = !!occupiedSeat;
-                                                    const isOccupiedFemale = isOccupied && occupiedSeat.passenger_gender === 'wanita';
-                                                    const showPinkOccupied = userGender === 'wanita' && isOccupiedFemale;
-
-                                                    const selectedIndex = passengers.findIndex(p => p.seat_number === seatCode);
-                                                    const isSelectedByUs = selectedIndex !== -1;
-
-                                                    let seatClass = 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300';
-                                                    if (isOccupied) {
-                                                        if (showPinkOccupied) {
-                                                            seatClass = 'bg-pink-50 border-pink-200 text-pink-500 cursor-not-allowed';
-                                                        } else {
-                                                            seatClass = 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed';
-                                                        }
-                                                    } else if (isSelectedByUs) {
-                                                        seatClass = 'bg-[#1800ad] border-blue-700 text-white shadow-md ring-2 ring-blue-300 ring-offset-1';
-                                                    }
-
-                                                    return (
-                                                        <React.Fragment key={letter}>
-                                                            {((trainClass !== 'economy' && letterIdx === 2) || (trainClass === 'economy' && letterIdx === 3)) && (
-                                                                <div className="w-6"></div> // Lorong jalan yang bersih (tanpa kotak 'jln')
-                                                            )}
-
-                                                            <button
-                                                                type="button"
-                                                                disabled={isOccupied}
-                                                                onClick={() => handleSeatClick(seatCode)}
-                                                                className={`w-11 h-11 rounded text-xs font-bold transition-all border flex flex-col items-center justify-center ${seatClass}`}
-                                                            >
-                                                                <span>{seatCode}</span>
-                                                                {isSelectedByUs && <span className="text-[9px] font-medium opacity-90 mt-0.5">P{selectedIndex + 1}</span>}
-                                                            </button>
-                                                        </React.Fragment>
-                                                    );
-                                                })}
-                                                <span className="w-6 text-center text-xs font-bold text-slate-400">{rowNum}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </div>
+                        <SeatMapGrid
+                            scheduleDetail={scheduleDetail}
+                            formattedJourneyDate={formattedJourneyDate}
+                            trainClass={trainClass}
+                            totalCoaches={totalCoaches}
+                            currentCoach={currentCoach}
+                            onCoachChange={(coachNum) => {
+                                setCurrentCoach(coachNum);
+                                setPassengers(passengers.map(p => ({ ...p, seat_number: '' })));
+                            }}
+                            userGender={userGender}
+                            rows={rows}
+                            seatLetters={seatLetters}
+                            aisleIndex={aisleIndex}
+                            occupiedSeats={occupiedSeats}
+                            passengers={passengers}
+                            onSeatClick={handleSeatClick}
+                        />
                     </div>
                 </div>
             </div>

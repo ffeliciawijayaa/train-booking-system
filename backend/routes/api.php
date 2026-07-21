@@ -20,6 +20,7 @@ Route::get('/schedules/{id}/detail', [TicketController::class, 'getScheduleDetai
 //pencarian stasiun dan tiket
 Route::get('/user/stations', [UserController::class, 'getStations']);
 Route::get('/tickets/search', [TicketController::class, 'search']);
+Route::post('/user/search-tickets', [TicketController::class, 'search']);
 
 
 //rute khusus user

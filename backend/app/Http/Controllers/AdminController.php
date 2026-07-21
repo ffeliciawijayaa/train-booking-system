@@ -96,6 +96,18 @@ class AdminController extends Controller
         foreach ($stops as $index => $stop) {
             $stationIds[] = $stop['station_id'];
 
+            // Validasi harga akumulasi harus naik secara ketat (strictly increasing)
+            if ($index > 0) {
+                $prevPrice = (float) ($stops[$index - 1]['price_from_start'] ?? 0);
+                $currentPrice = (float) ($stop['price_from_start'] ?? 0);
+                if ($currentPrice <= $prevPrice) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => "Gagal di Urutan Ke-" . ($index + 1) . ": Harga dari awal (Rp " . number_format($currentPrice, 0, ',', '.') . ") harus lebih besar dari stasiun sebelumnya (Rp " . number_format($prevPrice, 0, ',', '.') . ")!"
+                    ], 422);
+                }
+            }
+
             // Konversi string jam ke objek Carbon untuk perbandingan matematika waktu
             $arrival = $stop['arrival_time'] ? \Carbon\Carbon::parse($stop['arrival_time']) : null;
             $departure = $stop['departure_time'] ? \Carbon\Carbon::parse($stop['departure_time']) : null;
@@ -235,6 +247,18 @@ class AdminController extends Controller
             // Validasi logika waktu dan duplikasi stasiun (Sama seperti storeSchedule)
             foreach ($stops as $index => $stop) {
                 $stationIds[] = $stop['station_id'];
+
+                // Validasi harga akumulasi harus naik secara ketat (strictly increasing)
+                if ($index > 0) {
+                    $prevPrice = (float) ($stops[$index - 1]['price_from_start'] ?? 0);
+                    $currentPrice = (float) ($stop['price_from_start'] ?? 0);
+                    if ($currentPrice <= $prevPrice) {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => "Gagal di Urutan Ke-" . ($index + 1) . ": Harga dari awal (Rp " . number_format($currentPrice, 0, ',', '.') . ") harus lebih besar dari stasiun sebelumnya (Rp " . number_format($prevPrice, 0, ',', '.') . ")!"
+                        ], 422);
+                    }
+                }
 
                 $arrival = $stop['arrival_time'] ? \Carbon\Carbon::parse($stop['arrival_time']) : null;
                 $departure = $stop['departure_time'] ? \Carbon\Carbon::parse($stop['departure_time']) : null;
@@ -497,16 +521,26 @@ class AdminController extends Controller
         {
             $request->validate([
                 'name' => 'required|string',
+                'code' => 'nullable|string',
                 'logo_url' => 'nullable|string',
                 'instructions' => 'nullable|string',
                 'is_active' => 'boolean'
             ]);
 
+            $code = $request->code ?: \Illuminate\Support\Str::slug($request->name, '_');
+            // Pastikan code unik jika auto-generated
+            $baseCode = $code;
+            $count = 1;
+            while (\App\Models\PaymentMethod::where('code', $code)->exists()) {
+                $code = $baseCode . '_' . $count++;
+            }
+
             $method = \App\Models\PaymentMethod::create([
                 'name' => $request->name,
+                'code' => $code,
                 'logo_url' => $request->logo_url,
                 'instructions' => $request->instructions,
-                'is_active' => $request->is_active ?? true
+                'is_active' => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : true
             ]);
 
             return response()->json([
@@ -534,7 +568,7 @@ class AdminController extends Controller
                 'name' => $request->name,
                 'logo_url' => $request->logo_url,
                 'instructions' => $request->instructions,
-                'is_active' => $request->is_active ?? true
+                'is_active' => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : $method->is_active
             ]);
 
             return response()->json([

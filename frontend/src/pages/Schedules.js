@@ -30,6 +30,13 @@ function Schedules() {
         return { headers: { Authorization: `Bearer ${token}` } };
     };
 
+    useEffect(() => {
+        if (message) {
+            const timer = setTimeout(() => setMessage(''), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
+
     const fetchSchedules = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:8000/api/admin/schedules', getAuthHeader());
@@ -106,17 +113,33 @@ function Schedules() {
         const stationIds = routeStops.map(stop => stop.station_id);
         const hasDuplicateStation = stationIds.some((id, index) => stationIds.indexOf(id) !== index);
         if (hasDuplicateStation) {
-            setMessage('Gagal: Terdapat stasiun rute yang ganda atau duplikat.');
+            const err = 'Gagal: Terdapat stasiun rute yang ganda atau duplikat.';
+            setMessage(err);
+            showPopup(err);
             return;
         }
 
         for (let i = 0; i < routeStops.length; i++) {
             const current = routeStops[i];
+
+            if (i > 0) {
+                const prevPrice = parseFloat(routeStops[i - 1].price_from_start) || 0;
+                const currentPrice = parseFloat(current.price_from_start) || 0;
+                if (currentPrice <= prevPrice) {
+                    const err = `Gagal di Urutan Ke-${i + 1}: Harga dari awal (Rp ${currentPrice.toLocaleString('id-ID')}) harus lebih besar dari stasiun sebelumnya (Rp ${prevPrice.toLocaleString('id-ID')}).`;
+                    setMessage(err);
+                    showPopup(err);
+                    return;
+                }
+            }
+
             if (i !== 0 && i !== routeStops.length - 1) {
                 const arrMin = timeToMinutes(current.arrival_time);
                 const depMin = timeToMinutes(current.departure_time);
                 if (depMin - arrMin < 5) {
-                    setMessage(`Gagal: Waktu transit di stasiun urutan ke-${i + 1} terlalu singkat. Jam berangkat harus lebih lambat minimal 5 menit dari jam tiba.`);
+                    const err = `Gagal: Waktu transit di stasiun urutan ke-${i + 1} terlalu singkat. Jam berangkat harus lebih lambat minimal 5 menit dari jam tiba.`;
+                    setMessage(err);
+                    showPopup(err);
                     return;
                 }
             }
@@ -127,7 +150,9 @@ function Schedules() {
                 const currentArrMin = timeToMinutes(current.arrival_time || current.departure_time);
 
                 if (currentArrMin - prevDepMin < 30) {
-                    setMessage(`Gagal: Durasi perjalanan ke stasiun urutan ke-${i + 1} tidak logis. Waktu kedatangan harus minimal 30 menit setelah keberangkatan dari stasiun sebelumnya.`);
+                    const err = `Gagal: Durasi perjalanan ke stasiun urutan ke-${i + 1} tidak logis. Waktu kedatangan harus minimal 30 menit setelah keberangkatan dari stasiun sebelumnya.`;
+                    setMessage(err);
+                    showPopup(err);
                     return;
                 }
             }
@@ -152,7 +177,9 @@ function Schedules() {
             resetForm();
             fetchSchedules();
         } catch (error) {
-            setMessage(error.response?.data?.message || 'Gagal memproses data jadwal.');
+            const err = error.response?.data?.message || 'Gagal memproses data jadwal.';
+            setMessage(err);
+            showPopup(err);
         }
     };
 
@@ -217,10 +244,11 @@ function Schedules() {
 
             <hr className="border-slate-200 mb-8" />
 
+            {/* Alert Message Toast di Bawah */}
             {message && (
-                <div className={`p-4 rounded-lg mb-6 border text-sm font-medium shadow-sm transition-all duration-300 ${isMessageError
-                    ? 'bg-red-50 text-red-700 border-red-200'
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-xl text-sm font-semibold text-white shadow-xl transition-all border ${isMessageError
+                    ? 'bg-red-600 border-red-700'
+                    : 'bg-emerald-700 border-emerald-800'
                     }`}>
                     {message}
                 </div>
@@ -228,7 +256,13 @@ function Schedules() {
 
             <Modal isOpen={isModalOpen} onClose={resetForm} maxWidth="max-w-4xl" title={isEditing ? "Edit Jadwal Perjalanan" : "Tambah Jadwal Perjalanan"}>
 
-                        <form onSubmit={handleSubmit}>
+                {message && isMessageError && (
+                    <div className="p-4 mb-6 bg-red-50 border border-red-200 text-red-700 text-sm font-semibold rounded-xl flex items-center gap-2 shadow-sm">
+                        <span>{message}</span>
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-2">Pilih Kereta:</label>

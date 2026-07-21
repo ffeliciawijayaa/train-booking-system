@@ -5,12 +5,19 @@ import UserNavbar from "../components/UserNavbar";
 import Footer from "../components/Footer";
 import ProgressSteps from '../components/ProgressSteps';
 import { usePopup } from '../components/PopupContext';
+import { formatTime } from '../utils/dateUtils';
+import { getQrCodeUrl } from '../utils/qrUtils';
+import useClipboard from '../hooks/useClipboard';
+import useCountdownTimer from '../hooks/useCountdownTimer';
+import ProtectionStep from '../components/payment/ProtectionStep';
+import OrderReviewStep from '../components/payment/OrderReviewStep';
+import PaymentMethodStep from '../components/payment/PaymentMethodStep';
 
 function Payment() {
     const { showPopup, showConfirm } = usePopup();
     const { bookingId } = useParams();
     const navigate = useNavigate();
-
+    const { copiedText, handleCopy } = useClipboard();
 
     const [currentStep, setCurrentStep] = useState(2);
 
@@ -19,20 +26,12 @@ function Payment() {
     const [protections, setProtections] = useState([]);
     const [selectedMethod, setSelectedMethod] = useState('');
     const [selectedProtection, setSelectedProtection] = useState(null);
-    const [copiedText, setCopiedText] = useState('');
 
     const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [timeLeft, setTimeLeft] = useState('--:--');
-    const [isExpired, setIsExpired] = useState(false);
+    const { timeLeft, isExpired } = useCountdownTimer(bookingData?.payment?.expired_at);
 
     const token = localStorage.getItem('token');
-
-    const handleCopy = (text) => {
-        navigator.clipboard.writeText(text);
-        setCopiedText(text);
-        setTimeout(() => setCopiedText(''), 2000);
-    };
 
     //ambil Data Booking, Metode Bayar, dan Asuransi dari Backend
     useEffect(() => {
@@ -68,30 +67,6 @@ function Payment() {
         };
         fetchAllData();
     }, [bookingId, token, navigate]);
-
-    //live countdown logic
-    useEffect(() => {
-        if (!bookingData?.payment?.expired_at) return;
-
-        const interval = setInterval(() => {
-            const now = new Date().getTime();
-
-            const expired = new Date(bookingData.payment.expired_at.replace(/-/g, "/")).getTime();
-            const distance = expired - now;
-
-            if (distance <= 0) {
-                clearInterval(interval);
-                setTimeLeft("00:00");
-                setIsExpired(true);
-            } else {
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-                setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [bookingData]);
 
     //otomatis kick user jika waktu habis
     useEffect(() => {
@@ -130,7 +105,7 @@ function Payment() {
     if (loading) return <div className="p-8 text-center font-semibold text-slate-600">Memuat rincian tagihan...</div>;
     if (!bookingData) return <div className="p-8 text-center text-red-500 font-semibold">Data transaksi tidak valid.</div>;
 
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=QRIS_KAI_${bookingData.booking_code}_${bookingData.total_price}`;
+    const qrCodeUrl = getQrCodeUrl(`QRIS_KAI_${bookingData.booking_code}_${bookingData.total_price}`, '250x250');
 
     //kalkulasi Harga Tiket + Asuransi jika dipilih
     const baseTotal = parseInt(bookingData.total_price || 0);
@@ -167,313 +142,52 @@ function Payment() {
 
                         <div className="bg-white p-6 sm:p-8 rounded shadow-sm border border-slate-200">
 
-                            {/*proteksi tambahan*/}
                             {currentStep === 2 && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                                    <div className="border-b border-slate-200 pb-4 mb-6">
-                                        <h2 className="text-xl font-bold text-slate-900">Proteksi Tambahan</h2>
-                                    </div>
-
-                                    <div className="space-y-4 mb-8">
-                                        <label className={`flex items-start p-4 rounded border cursor-pointer transition-all ${!selectedProtection ? 'border-[#1800ad] bg-[#1800ad]/5 text-blue-800 ring-1 ring-[#1800ad]' : 'border-slate-200 hover:border-slate-300'}`}>
-                                            <input type="radio" name="protection" className="mt-1 w-4 h-4 text-[#1800ad] focus:ring-[#1800ad]"
-                                                checked={!selectedProtection} onChange={() => setSelectedProtection(null)}
-                                            />
-                                            <div className="ml-4 text-sm">
-                                                <span className="font-bold block text-base mb-0.5">Tanpa Perlindungan</span>
-                                                <span className="text-xs text-slate-500">Risiko perjalanan sepenuhnya ditanggung penumpang.</span>
-                                            </div>
-                                        </label>
-
-                                        {protections.map((prot) => (
-                                            <label key={prot.id} className={`flex items-start p-4 rounded border cursor-pointer transition-all ${selectedProtection?.id === prot.id ? 'border-[#1800ad] bg-[#1800ad]/5 text-blue-800 ring-1 ring-[#1800ad]' : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'}`}>
-                                                <input type="radio" name="protection" className="mt-1 w-4 h-4 text-[#1800ad] focus:ring-[#1800ad]"
-                                                    checked={selectedProtection?.id === prot.id} onChange={() => setSelectedProtection(prot)}
-                                                />
-                                                <div className="ml-4 flex-1 text-sm">
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <span className="font-bold text-slate-800 text-base">{prot.name}</span>
-                                                        <span className="text-[#1800ad] font-bold">+Rp {parseInt(prot.price).toLocaleString('id-ID')}/pax</span>
-                                                    </div>
-                                                    <span className="text-xs text-slate-500 leading-relaxed block max-w-2xl">{prot.description}</span>
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex justify-between pt-4 border-t border-slate-100 mt-6">
-                                        <button
-                                            onClick={async () => {
-                                                if (await showConfirm('Yakin ingin membatalkan pesanan tiket ini?')) {
-                                                    navigate('/');
-                                                }
-                                            }}
-                                            className="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-sm rounded transition-colors"
-                                        >
-                                            Kembali
-                                        </button>
-                                        <button
-                                            onClick={() => setCurrentStep(3)}
-                                            className="px-8 py-3 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded shadow transition-colors"
-                                        >
-                                            Lanjut
-                                        </button>
-                                    </div>
-                                </div>
+                                <ProtectionStep
+                                    protections={protections}
+                                    selectedProtection={selectedProtection}
+                                    setSelectedProtection={setSelectedProtection}
+                                    onNext={() => setCurrentStep(3)}
+                                    onBack={async () => {
+                                        if (await showConfirm('Yakin ingin membatalkan pesanan tiket ini?')) {
+                                            navigate('/');
+                                        }
+                                    }}
+                                />
                             )}
 
-                            {/*review*/}
                             {currentStep === 3 && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                                    <div className="border-b border-slate-200 pb-4 mb-6">
-                                        <h2 className="text-xl font-bold text-slate-900">Review</h2>
-                                    </div>
-
-                                    <div className="flex flex-col gap-6">
-                                        {/*rute kereta */}
-                                        <div className="bg-slate-50 p-5 rounded border border-slate-200">
-                                            <span className="text-xs font-bold uppercase tracking-wider text-[#1800ad] bg-[#1800ad]/10 px-2 py-1 rounded">
-                                                {bookingData.schedule?.train?.class?.toUpperCase() || 'KERETA'}
-                                            </span>
-                                            <h3 className="text-lg font-bold text-slate-900 mt-3 mb-4">{bookingData.schedule?.train?.name}</h3>
-
-                                            <div className="border-t border-slate-200 pt-4">
-                                                <div className="flex justify-between items-start text-sm">
-                                                    <div>
-                                                        <p className="text-lg font-bold text-slate-900">{bookingData.schedule?.departure_time ? (bookingData.schedule.departure_time.includes(' ') ? bookingData.schedule.departure_time.split(' ')[1] : bookingData.schedule.departure_time).split(':').slice(0, 2).join('.') : '--.--'}</p>
-                                                        <p className="font-bold text-slate-700 mt-1">{bookingData.board_station?.name || 'Stasiun Asal'}</p>
-                                                        <p className="text-xs text-slate-500">Keberangkatan</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-lg font-bold text-slate-900">{bookingData.schedule?.arrival_time ? (bookingData.schedule.arrival_time.includes(' ') ? bookingData.schedule.arrival_time.split(' ')[1] : bookingData.schedule.arrival_time).split(':').slice(0, 2).join('.') : '--.--'}</p>
-                                                        <p className="font-bold text-slate-700 mt-1">{bookingData.alight_station?.name || 'Stasiun Tujuan'}</p>
-                                                        <p className="text-xs text-slate-500">Kedatangan</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/*daftar penumpang*/}
-                                        <div className="bg-slate-50 p-5 rounded border border-slate-200">
-                                            <h3 className="text-sm font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2">Data penumpang</h3>
-                                            <div className="space-y-3">
-                                                {bookingData.booking_details?.map((detail, index) => (
-                                                    <div key={detail.id || index} className="flex justify-between items-center bg-white p-3 rounded border border-slate-200 text-xs shadow-sm">
-                                                        <div>
-                                                            <p className="font-bold text-slate-800">
-                                                                {detail.passenger_name}
-                                                                {detail.passenger_type === 'infant' && <span className="text-emerald-600 ml-1.5 text-[10px] uppercase font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block align-middle">Bayi</span>}
-                                                            </p>
-                                                            <p className="text-slate-400 font-mono mt-0.5">NIK: {detail.passenger_nik}</p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            {detail.passenger_type === 'infant' ? (
-                                                                <span className="bg-slate-100 text-slate-500 font-bold px-2.5 py-1 rounded text-xs border border-slate-200">
-                                                                    Tanpa Kursi
-                                                                </span>
-                                                            ) : (
-                                                                <span className="bg-[#1800ad] text-white font-bold px-2.5 py-1 rounded text-xs">
-                                                                    Gerbong {detail.coach_number} - {detail.seat_number}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/*biaya*/}
-                                    <div className="border-t border-slate-100 pt-6">
-                                        <div className="bg-slate-50 p-5 rounded border border-slate-200">
-                                            <div className="flex justify-between text-sm text-slate-600 mb-2">
-                                                <span>Total Tiket (Dewasa {adultPaxCount}x)</span>
-                                                <span>Rp {baseTotal.toLocaleString('id-ID')}</span>
-                                            </div>
-                                            {selectedProtection && (
-                                                <div className="flex justify-between text-sm text-slate-600 mb-2">
-                                                    <span>Biaya Proteksi ({selectedProtection.name})</span>
-                                                    <span>Rp {protectionCost.toLocaleString('id-ID')}</span>
-                                                </div>
-                                            )}
-                                            <div className="flex justify-between items-baseline mt-4 pt-4 border-t border-slate-200 border-dashed">
-                                                <span className="text-base font-bold text-slate-800">Total Tagihan</span>
-                                                <span className="text-xl font-extrabold text-amber-600">
-                                                    Rp {finalTotal.toLocaleString('id-ID')}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-between pt-4 border-t border-slate-100 mt-6">
-                                        <button
-                                            onClick={() => setCurrentStep(2)}
-                                            className="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-sm rounded transition-colors"
-                                        >
-                                            Kembali
-                                        </button>
-                                        <button
-                                            onClick={() => setCurrentStep(4)}
-                                            className="px-8 py-3 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded shadow transition-colors"
-                                        >
-                                            Lanjut ke Pembayaran
-                                        </button>
-                                    </div>
-                                </div>
+                                <OrderReviewStep
+                                    bookingData={bookingData}
+                                    selectedProtection={selectedProtection}
+                                    adultPaxCount={adultPaxCount}
+                                    baseTotal={baseTotal}
+                                    protectionCost={protectionCost}
+                                    finalTotal={finalTotal}
+                                    onNext={() => setCurrentStep(4)}
+                                    onBack={() => setCurrentStep(2)}
+                                />
                             )}
 
-                            {/*pembayaran*/}
                             {currentStep === 4 && (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                                    <div className="border-b pb-4 mb-6 flex justify-between items-end">
-                                        <div>
-                                            <h2 className="text-xl font-bold text-slate-900">Metode Pembayaran</h2>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-xs text-slate-500 mb-1">Total Tagihan</div>
-                                            <div className="text-2xl font-black text-amber-600">Rp {finalTotal.toLocaleString('id-ID')}</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-3">
-                                            <h3 className="text-sm font-bold text-slate-800 mb-3">Pilihan Pembayaran</h3>
-                                            {paymentMethods.map((method) => (
-                                                <label
-                                                    key={method.code}
-                                                    className={`flex items-center justify-between p-4 rounded border cursor-pointer text-sm font-medium transition-all ${selectedMethod === method.code
-                                                        ? 'border-[#1800ad] bg-[#1800ad]/5/50 text-blue-800 ring-1 ring-[#1800ad]'
-                                                        : 'border-slate-200 hover:bg-slate-50 hover:border-slate-300'
-                                                        }`}
-                                                >
-                                                    <span className="font-bold">{method.name}</span>
-                                                    <input
-                                                        type="radio"
-                                                        name="payment"
-                                                        value={method.code}
-                                                        checked={selectedMethod === method.code}
-                                                        onChange={() => setSelectedMethod(method.code)}
-                                                        className="w-4 h-4 text-[#1800ad] focus:ring-[#1800ad]"
-                                                    />
-                                                </label>
-                                            ))}
-                                        </div>
-
-                                        <div className="flex flex-col h-full">
-                                            <h3 className="text-sm font-bold text-slate-800 mb-3">Instruksi Pembayaran</h3>
-                                            <div className="flex-1 bg-slate-50 border border-slate-200 p-6 rounded flex flex-col items-center justify-center text-center shadow-sm">
-                                                {selectedMethod ? (
-                                                    selectedMethod.toLowerCase() === 'qris' ? (
-                                                        <>
-                                                            <p className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Scan QRIS Berikut</p>
-                                                            <div className="p-3 bg-white rounded-xl shadow border border-slate-100 mb-4">
-                                                                <img src={qrCodeUrl} alt="QRIS Payment" className="w-48 h-48 object-contain" />
-                                                            </div>
-                                                            <p className="text-xs text-slate-500 max-w-[250px]">Buka aplikasi m-banking atau e-wallet Anda dan scan QR di atas.</p>
-                                                        </>
-                                                    ) : selectedMethod.toLowerCase().includes('va') || selectedMethod.toLowerCase().includes('bca') || selectedMethod.toLowerCase().includes('mandiri') || selectedMethod.toLowerCase().includes('bni') || selectedMethod.toLowerCase().includes('bri') ? (
-                                                        <div className="w-full text-left space-y-4">
-                                                            <div className="bg-white p-4 rounded border border-slate-200 text-center">
-                                                                <p className="text-xs text-slate-500 mb-1">Nomor Virtual Account {selectedMethod.toUpperCase()}</p>
-                                                                <div className="flex items-center justify-center gap-2">
-                                                                    <p className="text-xl font-bold text-slate-800 tracking-wider font-mono">
-                                                                        1234567890123456
-                                                                    </p>
-                                                                    <button
-                                                                        onClick={() => handleCopy(`1234567890123456`)}
-                                                                        className="text-slate-400 hover:text-[#1800ad] transition-colors"
-                                                                        title="Salin"
-                                                                    >
-                                                                        {copiedText === `1234567890123456` ? (
-                                                                            <span className="text-xs text-emerald-600 font-bold">Tersalin!</span>
-                                                                        ) : (
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                                                        )}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside text-left">
-                                                                <li>Login ke aplikasi m-banking atau ATM {selectedMethod.toUpperCase()}.</li>
-                                                                <li>Pilih menu Transfer &gt; Virtual Account.</li>
-                                                                <li>Masukkan nomor Virtual Account di atas.</li>
-                                                                <li>Pastikan nominal tagihan sesuai (<strong>Rp {finalTotal.toLocaleString('id-ID')}</strong>).</li>
-                                                                <li>Selesaikan transaksi menggunakan PIN Anda.</li>
-                                                            </ol>
-                                                        </div>
-                                                    ) : selectedMethod.toLowerCase().includes('mart') ? (
-                                                        <div className="w-full text-left space-y-4">
-                                                            <div className="bg-white p-4 rounded border border-slate-200 text-center">
-                                                                <p className="text-xs text-slate-500 mb-1">Kode Pembayaran {selectedMethod.toUpperCase()}</p>
-                                                                <div className="flex items-center justify-center gap-2">
-                                                                    <p className="text-xl font-bold text-slate-800 tracking-wider font-mono">
-                                                                        TRAIN-{bookingData?.booking_code}
-                                                                    </p>
-                                                                    <button
-                                                                        onClick={() => handleCopy(`TRAIN-${bookingData?.booking_code}`)}
-                                                                        className="text-slate-400 hover:text-[#1800ad] transition-colors"
-                                                                        title="Salin"
-                                                                    >
-                                                                        {copiedText === `TRAIN-${bookingData?.booking_code}` ? (
-                                                                            <span className="text-xs text-emerald-600 font-bold">Tersalin!</span>
-                                                                        ) : (
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                                                        )}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside text-left">
-                                                                <li>Datang ke gerai {selectedMethod.toUpperCase()} terdekat.</li>
-                                                                <li>Sampaikan ke kasir bahwa Anda ingin membayar tiket kereta.</li>
-                                                                <li>Berikan kode pembayaran di atas ke kasir.</li>
-                                                                <li>Lakukan pembayaran sebesar <strong>Rp {finalTotal.toLocaleString('id-ID')}</strong>.</li>
-                                                                <li>Simpan struk sebagai bukti pembayaran.</li>
-                                                            </ol>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-full text-left space-y-4">
-                                                            <div className="bg-white p-4 rounded border border-slate-200 text-center">
-                                                                <p className="text-xs text-slate-500 mb-1">Selesaikan Pembayaran dengan {selectedMethod.toUpperCase()}</p>
-                                                                <p className="text-xl font-bold text-slate-800 tracking-wider font-mono">
-                                                                    Rp {finalTotal.toLocaleString('id-ID')}
-                                                                </p>
-                                                            </div>
-                                                            <ol className="text-xs text-slate-600 space-y-2 list-decimal list-inside text-left">
-                                                                <li>Ikuti petunjuk pembayaran dari {selectedMethod.toUpperCase()}.</li>
-                                                                <li>Pastikan nominal transfer sesuai tagihan hingga 3 digit terakhir.</li>
-                                                                <li>Simpan bukti pembayaran Anda.</li>
-                                                            </ol>
-                                                        </div>
-                                                    )
-                                                ) : (
-                                                    <div className="text-slate-400 p-6">
-                                                        <span className="text-4xl block mb-4">💳</span>
-                                                        <p className="text-sm font-medium text-slate-600">Pilih metode pembayaran terlebih dahulu untuk melihat instruksi.</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-between pt-6 border-t border-slate-100 mt-8">
-                                        <button
-                                            onClick={() => setCurrentStep(3)}
-                                            className="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-sm rounded transition-colors"
-                                        >
-                                            Kembali
-                                        </button>
-                                        <button
-                                            type="button"
-                                            disabled={isProcessing || isExpired}
-                                            onClick={handleProcessPayment}
-                                            className="px-8 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded shadow transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isProcessing ? 'Memproses Transaksi...' : 'Konfirmasi Telah Bayar'}
-                                        </button>
-                                    </div>
-                                </div>
+                                <PaymentMethodStep
+                                    paymentMethods={paymentMethods}
+                                    selectedMethod={selectedMethod}
+                                    setSelectedMethod={setSelectedMethod}
+                                    bookingData={bookingData}
+                                    finalTotal={finalTotal}
+                                    qrCodeUrl={qrCodeUrl}
+                                    copiedText={copiedText}
+                                    handleCopy={handleCopy}
+                                    isProcessing={isProcessing}
+                                    isExpired={isExpired}
+                                    onProcessPayment={handleProcessPayment}
+                                    onBack={() => setCurrentStep(3)}
+                                />
                             )}
 
                         </div>
+
                     </div>
                 </div>
             </div>

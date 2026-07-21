@@ -176,14 +176,14 @@ function AdminDashboard() {
                                             {booking.user?.name || 'Guest'}
                                         </td>
                                         <td className="p-4 text-sm text-slate-600">
-                                            {booking.schedule?.route_stops?.[0]?.station?.name || '-'} <span className="text-slate-400 mx-1">→</span> {booking.schedule?.route_stops?.[booking.schedule?.route_stops?.length - 1]?.station?.name || '-'}
+                                            {booking.board_station?.name || booking.boardStation?.name || '-'} <span className="text-slate-400 mx-1">→</span> {booking.alight_station?.name || booking.alightStation?.name || '-'}
                                         </td>
                                         <td className="p-4">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${booking.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${booking.status === 'completed' || booking.status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
                                                 booking.status === 'pending' ? 'bg-amber-100 text-amber-700' :
                                                     'bg-red-100 text-red-700'
                                                 }`}>
-                                                {booking.status === 'paid' ? 'Paid' : booking.status === 'pending' ? 'Pending' : 'Canceled'}
+                                                {booking.status === 'completed' || booking.status === 'paid' ? 'Paid' : booking.status === 'pending' ? 'Pending' : 'Canceled'}
                                             </span>
                                         </td>
                                         <td className="p-4 pr-6 text-sm font-bold text-slate-800 text-right">

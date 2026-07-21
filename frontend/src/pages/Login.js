@@ -168,7 +168,7 @@ function Login() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-blue-700 text-white font-bold rounded-md hover:bg-blue-800 transition-colors text-sm mt-2 shadow-lg shadow-blue-700/30"
+              className="w-full py-3 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold rounded-md transition-colors text-sm mt-2 shadow-lg shadow-[#1800ad]/30"
             >
               Masuk
             </button>
