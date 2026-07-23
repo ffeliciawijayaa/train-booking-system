@@ -24,49 +24,49 @@ class Booking extends Model
         'protection_price'
     ];
 
-    // Relasi: Pesanan ini dibuat oleh user mana?
+    //pesanan ini dibuat oleh user mana?
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // Relasi: Pesanan ini untuk jadwal perjalanan yang mana?
+    //pesanan ini untuk jadwal perjalanan yang mana?
     public function schedule(): BelongsTo
     {
         return $this->belongsTo(Schedule::class);
     }
 
-    // Relasi: Pesanan ini naik di stasiun mana?
+    //pesanan ini naik di stasiun mana?
     public function boardStation(): BelongsTo
     {
         return $this->belongsTo(Station::class, 'board_station_id');
     }
 
-    // Relasi: Pesanan ini turun di stasiun mana?
+    //pesanan ini turun di stasiun mana?
     public function alightStation(): BelongsTo
     {
         return $this->belongsTo(Station::class, 'alight_station_id');
     }
 
-    // Relasi: Satu struk booking memiliki banyak detail penumpang di dalamnya
+    //satu struk booking memiliki banyak detail penumpang di dalamnya
     public function bookingDetails(): HasMany
     {
         return $this->hasMany(BookingDetail::class);
     }
     
-    // Alias untuk relasi details yang sudah ada (menghindari error jika dipanggil 'details')
+    //satu booking punya banyak detail/penumpang
     public function details(): HasMany
     {
         return $this->hasMany(BookingDetail::class);
     }
 
-    // Relasi: Satu struk booking memiliki satu catatan pembayaran
+    //satu struk booking memiliki satu catatan pembayaran
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
     }
 
-    // Relasi: Booking memiliki satu perlindungan/asuransi opsional
+    //booking memiliki satu proteksi opsional
     public function protection(): BelongsTo
     {
         return $this->belongsTo(Protection::class);

@@ -20,13 +20,12 @@ function Stations() {
     const [editId, setEditId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Fungsi pembantu untuk mengambil token yang sedang aktif
     const getAuthHeader = () => {
         const token = localStorage.getItem('token');
         return { headers: { Authorization: `Bearer ${token}` } };
     };
 
-    // 1. GET DATA
+    //get
     const fetchStations = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:8000/api/admin/stations', getAuthHeader());
@@ -50,14 +49,14 @@ function Stations() {
         fetchStations();
     }, []);
 
-    // 2. SUBMIT FORM (POST/PUT)
+    //submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
 
         try {
             if (isEditing) {
-                // JIKA EDIT (PUT)
+                //edit
                 const response = await axios.put(
                     `http://127.0.0.1:8000/api/admin/stations/${editId}`,
                     { station_code: stationCode, name: name, city: city, is_active: isActive },
@@ -65,7 +64,7 @@ function Stations() {
                 );
                 setMessage(response.data.message);
             } else {
-                // JIKA TAMBAH BARU (POST)
+                //tambah
                 const response = await axios.post(
                     'http://127.0.0.1:8000/api/admin/stations',
                     { station_code: stationCode, name: name, city: city, is_active: isActive },
@@ -111,7 +110,7 @@ function Stations() {
         setIsModalOpen(false);
     };
 
-    // 4. DELETE DATA
+    //delete
     const handleDeleteClick = async (id, stationName) => {
         if (await showConfirm(`Apakah Anda yakin ingin menghapus stasiun "${stationName}"?`)) {
             try {
@@ -126,7 +125,6 @@ function Stations() {
 
     return (
         <div className="p-6 md:p-8 font-sans text-slate-800">
-            {/* Header Title */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-950">Kelola Stasiun</h2>
@@ -142,14 +140,13 @@ function Stations() {
 
             <hr className="border-slate-200 mb-8" />
 
-            {/* Alert Message Toast di Bawah */}
+            {/*alert message toast*/}
             {message && (
                 <div className="fixed bottom-6 right-6 z-50 p-4 bg-emerald-700 text-white border border-emerald-800 rounded-xl text-sm font-semibold shadow-xl transition-all">
                     {message}
                 </div>
             )}
 
-            {/* Modal Form */}
             <Modal 
                 isOpen={isModalOpen} 
                 title={isEditing ? 'Edit Data Stasiun' : 'Tambah Stasiun'}
@@ -216,7 +213,7 @@ function Stations() {
                 </form>
             </Modal>
 
-            {/* List Data */}
+            {/*list data */}
             <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
                 <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h3 className="text-lg font-bold text-slate-800">Daftar Stasiun</h3>

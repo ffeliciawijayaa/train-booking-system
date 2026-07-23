@@ -18,7 +18,6 @@ function AdminDashboard() {
                 const token = localStorage.getItem('token');
                 const config = { headers: { Authorization: `Bearer ${token}` } };
 
-                // Fetch data in parallel
                 const [resUsers, resStations, resTrains, resSchedules, resBookings] = await Promise.all([
                     axios.get('http://127.0.0.1:8000/api/admin/users', config),
                     axios.get('http://127.0.0.1:8000/api/admin/stations', config),
@@ -74,7 +73,7 @@ function AdminDashboard() {
 
     return (
         <div className="p-6 md:p-8 font-sans text-slate-800">
-            {/* Header */}
+            {/*header*/}
             <div className="flex flex-col md:flex-row md:justify-between md:items-end mb-6 gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-950">Dashboard</h2>
@@ -83,9 +82,8 @@ function AdminDashboard() {
             </div>
             <hr className="border-slate-200 mb-8" />
 
-            {/* Top Cards */}
+            {/*kartu statistik*/}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {/* Users Card */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-100 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <span className="text-sm font-semibold text-slate-500">Total Pengguna</span>
@@ -98,7 +96,6 @@ function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Stations Card */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-100 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <span className="text-sm font-semibold text-slate-500">Total Stasiun</span>
@@ -111,7 +108,6 @@ function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Trains Card */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-100 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <span className="text-sm font-semibold text-slate-500">Total Kereta</span>
@@ -124,7 +120,6 @@ function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Schedules Card */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-100 flex flex-col justify-between">
                     <div className="flex justify-between items-start mb-4">
                         <span className="text-sm font-semibold text-slate-500">Jadwal Perjalanan</span>
@@ -138,12 +133,10 @@ function AdminDashboard() {
                 </div>
             </div>
 
-
-            {/* Recent Bookings Table */}
+            {/*tabel pemesanan terbaru*/}
             <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
                 <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h3 className="text-lg font-bold text-slate-800">Pemesanan Terbaru</h3>
-                    {/* Search removed */}
                 </div>
 
                 <div className="overflow-x-auto">

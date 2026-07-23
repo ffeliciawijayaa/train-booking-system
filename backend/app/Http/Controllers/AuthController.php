@@ -29,7 +29,6 @@ class AuthController extends Controller
         // Buat token baru menggunakan Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // KUNCI UTAMA: Kirimkan token, name, beserta ROLE-nya ke Frontend
         return response()->json([
             'status' => 'success',
             'message' => 'Login berhasil!',
@@ -37,14 +36,13 @@ class AuthController extends Controller
             'user' => [
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role // Mengembalikan 'admin' atau 'user'
+                'role' => $user->role 
             ]
         ]);
     }
 
     public function register(Request $request)
     {
-        // Validasi input data pendaftaran sesuai skema tabel kelompokmu
         $request->validate([
             'nik' => 'required|string|size:16|unique:users,nik',
             'name' => 'required|string|max:255',
@@ -55,16 +53,15 @@ class AuthController extends Controller
             'birth_date' => 'required|date',
         ]);
 
-        // Simpan data user baru ke database
         $user = User::create([
             'nik' => $request->nik,
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password), // Password di-hash biar aman
+            'password' => Hash::make($request->password), 
             'phone_number' => $request->phone_number,
             'gender' => $request->gender,
             'birth_date' => $request->birth_date,
-            'role' => 'user', // Default langsung diset sebagai user biasa
+            'role' => 'user', 
         ]);
 
         return response()->json([

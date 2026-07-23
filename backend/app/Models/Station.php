@@ -9,7 +9,7 @@ class Station extends Model
 {
     protected $fillable = ['station_code', 'name', 'city', 'is_active'];
 
-    // Relasi: Satu stasiun bisa dipakai di banyak rute pemberhentian
+    //satu stasiun bisa dipakai di banyak rute pemberhentian
     public function routeStops(): HasMany
     {
         return $this->hasMany(RouteStop::class);

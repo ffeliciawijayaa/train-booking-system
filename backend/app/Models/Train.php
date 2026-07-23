@@ -9,7 +9,7 @@ class Train extends Model
 {
     protected $fillable = ['train_code', 'name', 'class', 'total_coaches', 'is_active'];
 
-    // Relasi: Satu kereta bisa punya banyak jadwal perjalanan
+    //satu kereta bisa punya banyak jadwal perjalanan
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class);

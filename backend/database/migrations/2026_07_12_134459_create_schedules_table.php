@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('schedules', function (Blueprint $table) {
             $table->id();
-            // Menghubungkan jadwal dengan ID kereta
             $table->foreignId('train_id')->constrained('trains')->onDelete('cascade');
             
-            $table->date('journey_date'); // Tanggal perjalanan
+            $table->date('journey_date'); 
             $table->enum('status', ['scheduled', 'boarding', 'completed'])->default('scheduled');
             $table->timestamps();
         });

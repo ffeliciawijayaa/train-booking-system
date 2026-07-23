@@ -95,7 +95,8 @@ function AdminBookings() {
                                             </span>
                                         </td>
                                         <td className="p-4 text-sm">
-                                            <div className="font-bold text-slate-800">{b.user?.name || '-'}</div>
+    
+                                        <div className="font-bold text-slate-800">{b.user?.name || '-'}</div>
                                             <div className="text-xs text-slate-500">{b.user?.email || '-'}</div>
                                         </td>
                                         <td className="p-4 text-sm">
@@ -115,10 +116,9 @@ function AdminBookings() {
                                         </td>
                                         <td className="p-4 text-sm">
                                             {b.payment ? (
-                                                <>
-                                                    <div className="font-bold text-slate-800">{b.payment.payment_method?.name || b.payment.payment_method_name || b.payment.payment_method || 'Transfer'}</div>
-                                                    <div className="mt-1">{getStatusBadge(b.payment.status)}</div>
-                                                </>
+                                                <div className="font-bold text-slate-800 uppercase text-xs">
+                                                    {b.payment.payment_method?.name || b.payment.payment_method_name || b.payment.payment_method || 'Transfer'}
+                                                </div>
                                             ) : (
                                                 <span className="text-slate-400 italic text-xs">Belum ada metode</span>
                                             )}

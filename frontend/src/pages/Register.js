@@ -75,14 +75,12 @@ function Register() {
                     </div>
 
                     <form onSubmit={handleRegister} className="space-y-4">
-                        {/* Nama Lengkap - Full Width */}
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Nama Lengkap</label>
                             <input type="text" placeholder="Masukkan Nama Lengkap Anda" className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
                         </div>
 
-                        {/* NIK & No Telepon */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">NIK (16 Digit)</label>
@@ -95,8 +93,7 @@ function Register() {
                                     onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })} required />
                             </div>
                         </div>
-
-                        {/* Jenis Kelamin & Tanggal Lahir - Di atas Email */}
+                        
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Jenis Kelamin</label>
@@ -115,14 +112,12 @@ function Register() {
                             </div>
                         </div>
 
-                        {/* Email - Full Width */}
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Email</label>
                             <input type="email" placeholder="Email Anda" className="w-full px-4 py-2.5 border border-gray-200 rounded-md focus:ring-1 focus:ring-[#1800ad] focus:border-[#1800ad] outline-none transition-colors text-sm"
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
                         </div>
 
-                        {/* Kata Sandi - Full Width */}
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Kata Sandi</label>
                             <div className="relative">
@@ -151,7 +146,6 @@ function Register() {
                             </div>
                         </div>
 
-                        {/* Konfirmasi Sandi - Full Width */}
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5 tracking-wider">Konfirmasi Sandi</label>
                             <div className="relative">

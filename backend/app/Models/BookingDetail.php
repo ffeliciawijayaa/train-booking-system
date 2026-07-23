@@ -17,7 +17,7 @@ class BookingDetail extends Model
         'ticket_price'
     ];
 
-    // Relasi: Detail penumpang ini merujuk ke struk booking yang mana?
+    //detail penumpang ini merujuk ke struk booking yang mana?
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);

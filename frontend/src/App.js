@@ -3,9 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Navbar from './components/Navbar';
 import Stations from './pages/Stations';
 import Trains from './pages/Trains';
-import Login from './pages/Login'; 
-import Register from './pages/Register'; 
-import ProtectedRoute from './components/ProtectedRoute'; 
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ProtectedRoute from './components/ProtectedRoute';
 import Schedules from './pages/Schedules';
 import UserDashboard from './pages/UserDashboard';
 import PassengerSeatSelection from './pages/PassengerSeatSelection';
@@ -36,25 +36,22 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* ==================== 1. RUTE PUBLIK UMUM ==================== */}
+        {/*rute publik*/}
         <Route path="/" element={<Navigate to="/search" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        
-        {/* ==================== 2. RUTE KHUSUS USER / PENUMPANG ==================== */}
-        <Route path="/search" element={
-          <ProtectedRoute allowedRole="user" allowGuest={true}>
-            <UserDashboard />
-          </ProtectedRoute>
-        } />
+        <Route path="/search" element={<UserDashboard />} />
+
+
+        {/*khsuus user*/}
 
         <Route path="/booking/:scheduleId" element={
           <ProtectedRoute allowedRole="user">
             <PassengerSeatSelection />
           </ProtectedRoute>
         } />
-        
+
         <Route path="/payment/:bookingId" element={
           <ProtectedRoute allowedRole="user">
             <Payment />
@@ -79,20 +76,19 @@ function App() {
           </ProtectedRoute>
         } />
 
-        {/* ==================== 3. RUTE KHUSUS ADMIN ==================== */}
-        {/* Ditambahkan allowedRole="admin" agar user biasa tidak bisa nembak ke sini */}
+        {/*rute khusus admin*/}
         <Route path="/admin/dashboard" element={
           <ProtectedRoute allowedRole="admin">
             <AdminLayout><AdminDashboard /></AdminLayout>
           </ProtectedRoute>
         } />
-        
+
         <Route path="/admin/stations" element={
           <ProtectedRoute allowedRole="admin">
             <AdminLayout><Stations /></AdminLayout>
           </ProtectedRoute>
         } />
-        
+
         <Route path="/admin/trains" element={
           <ProtectedRoute allowedRole="admin">
             <AdminLayout><Trains /></AdminLayout>
@@ -124,20 +120,20 @@ function App() {
         } />
 
         <Route path="/admin/admins" element={
-            <ProtectedRoute allowedRole="admin">
-              <AdminLayout><AdminAccounts /></AdminLayout>
-            </ProtectedRoute>
-          }
+          <ProtectedRoute allowedRole="admin">
+            <AdminLayout><AdminAccounts /></AdminLayout>
+          </ProtectedRoute>
+        }
         />
 
         <Route path="/admin/users" element={
-              <ProtectedRoute allowedRole="admin">
-                  <AdminLayout><AdminUsers /></AdminLayout>
-              </ProtectedRoute>
-          }
+          <ProtectedRoute allowedRole="admin">
+            <AdminLayout><AdminUsers /></AdminLayout>
+          </ProtectedRoute>
+        }
         />
 
-        {/* Jika rute tidak ditemukan, tendang ke login */}
+        {/*jika rute tidak ditemukan, auto ke login*/}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

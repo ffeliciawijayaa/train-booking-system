@@ -8,7 +8,7 @@
 export const getCoachLayout = (trainClass = 'economy') => {
     const rows = 16;
     const seatLetters = ['A', 'B', 'C', 'D'];
-    const aisleIndex = 2; // Aisle after 2nd seat (A, B | C, D)
+    const aisleIndex = 2; 
 
     return { rows, seatLetters, aisleIndex };
 };

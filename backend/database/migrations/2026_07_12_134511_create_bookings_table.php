@@ -15,15 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('booking_code')->unique();
             
-            // Relasi ke User dan Jadwal Utama
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('schedule_id')->constrained('schedules')->onDelete('cascade');
-            
-            // Relasi ke Stasiun Naik dan Turun
             $table->foreignId('board_station_id')->constrained('stations')->onDelete('cascade');
             $table->foreignId('alight_station_id')->constrained('stations')->onDelete('cascade');
             
-            // Angka Penggaris untuk logika overlap
+            //untuk logika overlap
             $table->integer('board_order');
             $table->integer('alight_order');
             

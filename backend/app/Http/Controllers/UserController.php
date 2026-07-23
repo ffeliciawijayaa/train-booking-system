@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
-    // 1. API Mendapatkan List Stasiun untuk Dropdown Pencarian
+    //get list stasiun untuk dropdown pencarian
     public function getStations()
     {
         return response()->json([
@@ -19,7 +19,7 @@ class UserController extends Controller
         ]);
     }
 
-    // 3. API Mendapatkan List Proteksi
+    //get list proteksi
     public function getProtections()
     {
         return response()->json([
@@ -28,7 +28,7 @@ class UserController extends Controller
         ]);
     }
 
-    // 4. API Mendapatkan List Metode Pembayaran
+    //get list metode pembayaran
     public function getPaymentMethods()
     {
         return response()->json([
@@ -37,7 +37,7 @@ class UserController extends Controller
         ]);
     }
 
-    // 5. API Mendapatkan Riwayat Tiket User
+    //get riwayat Tiket User
     public function getUserBookings(Request $request)
     {
         $user = $request->user();
@@ -62,7 +62,7 @@ class UserController extends Controller
         ]);
     }
 
-    // 6. API Update Profil User
+    //update profil user
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -76,7 +76,6 @@ class UserController extends Controller
             'phone_number' => 'nullable|string|max:15',
             'gender' => 'nullable|in:pria,wanita',
             'birth_date' => 'nullable|date',
-            // Email biasanya tidak diubah sembarangan atau harus cek unique
             'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 

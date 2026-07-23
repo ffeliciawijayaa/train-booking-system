@@ -5,14 +5,14 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Auth; // <-- 1. Tambahkan baris ini di atas
+use Illuminate\Support\Facades\Auth; 
 
 class EnsureUserIsAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // 1. Cek apakah pengguna sudah login (auth()->check())
-        // 2. Cek apakah role-nya adalah 'admin'
+        //cek apakah pengguna sudah login
+        //cek apakah role  nya adalah admin
         if (Auth::check() && Auth::user()->role === 'admin') {
             return $next($request); 
         }

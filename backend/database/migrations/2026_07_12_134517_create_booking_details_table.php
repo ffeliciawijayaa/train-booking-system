@@ -15,14 +15,15 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->constrained('bookings')->onDelete('cascade');
             
-            // Data penumpang riil
+            //data penumpang
+            //nik misal user yang tdk login kan ttp bisa ditambahkan sbg penumpang
             $table->string('passenger_nik', 16);
             $table->string('passenger_name');
             $table->enum('passenger_gender', ['pria', 'wanita']);
             
-            // Posisi Duduk
-            $table->integer('coach_number'); // Nomor Gerbong
-            $table->string('seat_number', 5); // Nomor Kursi (Misal: 12A)
+            //posisi Duduk
+            $table->integer('coach_number'); 
+            $table->string('seat_number', 5); 
             
             $table->decimal('ticket_price', 10, 2);
             $table->timestamps();

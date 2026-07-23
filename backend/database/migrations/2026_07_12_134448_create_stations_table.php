@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('stations', function (Blueprint $table) {
             $table->id();
 
-            $table->string('station_code')->unique(); // Misal: GMR, SLO
-            $table->string('name');                   // Misal: Gambir, Solo Balapan
-            $table->string('city');                   // Misal: Jakarta, Surakarta
+            $table->string('station_code')->unique(); 
+            $table->string('name');                   
+            $table->string('city');                   
             $table->timestamps();
         });
     }

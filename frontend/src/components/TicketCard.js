@@ -57,12 +57,10 @@ const TicketCard = ({ booking }) => {
                 </div>
             </div>
 
-            {/* THE SEPARATOR WITH HOLES */}
-            <div className="relative flex flex-col justify-center items-center w-full md:w-0 h-0 md:h-auto border-t md:border-t-0 md:border-l-2 border-dashed border-slate-200">
-                {/* Top Notch (Desktop) / Left Notch (Mobile) */}
+        
+            <div className="relative flex flex-col justify-center items-center w-full md:w-0 h-0 md:h-auto border-t md:border-t-0 md:border-l-2 border-dashed border-slate-200">           
                 <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 md:left-0 md:-translate-x-[calc(50%+1px)] w-8 h-8 bg-slate-50 rounded-full z-10" style={{ boxShadow: 'inset 0 -2px 4px 0 rgb(0 0 0 / 0.02)' }}></div>
 
-                {/* Bottom Notch (Desktop) / Right Notch (Mobile) */}
                 <div className="absolute bottom-0 translate-y-1/2 left-1/2 -translate-x-1/2 md:left-0 md:-translate-x-[calc(50%+1px)] w-8 h-8 bg-slate-50 rounded-full z-10" style={{ boxShadow: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.02)' }}></div>
             </div>
 
@@ -73,8 +71,10 @@ const TicketCard = ({ booking }) => {
                         <img src={qrCodeUrl} alt="QR Code Boarding" className="w-32 h-32 border border-slate-200 p-2 rounded mb-3 shadow-sm" />
                         <div className="text-xs text-slate-400">Scan QR Code</div>
                     </>
-                ) : (
+                ) : isCanceled ? (
                     <div className="text-slate-400 font-black text-xl uppercase tracking-widest">DIBATALKAN</div>
+                ) : (
+                    <div className="text-amber-500 font-black text-xl uppercase tracking-widest">MENUNGGU</div>
                 )}
             </div>
         </div>

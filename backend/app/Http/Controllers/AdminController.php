@@ -11,26 +11,26 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
-    // API untuk mengambil semua data stasiun
+    //untuk mengambil semua data stasiun
     public function getStation()
     {
-        $stations = Station::orderBy('id', 'desc')->get();
+        $stations = Station::orderBy('id', 'asc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $stations
         ]);
     }
 
-    // API untuk mengambil semua data kereta
+    //untuk mengambil semua data kereta
     public function getTrain()
     {
-        $trains = Train::orderBy('id', 'desc')->get();
+        $trains = Train::orderBy('id', 'asc')->get();
         return response()->json([
             'status' => 'success',
             'data' => $trains
         ]);
     }
-    // 1. API Tambah Stasiun Baru
+    //tambah stasiun
     public function storeStation(Request $request)
     {
         $request->validate([
@@ -52,7 +52,7 @@ class AdminController extends Controller
         ], 201);
     }
 
-    // 2. API Tambah Kereta Baru
+    //tambah kereta
     public function storeTrain(Request $request)
     {
         $request->validate([
@@ -75,10 +75,10 @@ class AdminController extends Controller
         ], 201);
     }
 
-    // 3. API Tambah Jadwal + Rute Sekaligus (Sudah Dikasih Proteksi Lapisan Baja)
+    //tambah jadwal + rute
     public function storeSchedule(Request $request)
     {
-        // Poin 4: Validasi dasar, tanggal perjalanan minimal HARI INI, ga boleh masa lalu
+        //validasi dasar, tanggal perjalanan
         $request->validate([
             'train_id' => 'required|exists:trains,id',
             'journey_date' => 'required|date|after_or_equal:today',
@@ -92,11 +92,9 @@ class AdminController extends Controller
         $stops = $request->route_stops;
         $stationIds = [];
 
-        // Loop pertama khusus buat ngecek kevalidan logika rute sebelum masuk database
         foreach ($stops as $index => $stop) {
             $stationIds[] = $stop['station_id'];
 
-            // Validasi harga akumulasi harus naik secara ketat (strictly increasing)
             if ($index > 0) {
                 $prevPrice = (float) ($stops[$index - 1]['price_from_start'] ?? 0);
                 $currentPrice = (float) ($stop['price_from_start'] ?? 0);
@@ -108,11 +106,10 @@ class AdminController extends Controller
                 }
             }
 
-            // Konversi string jam ke objek Carbon untuk perbandingan matematika waktu
             $arrival = $stop['arrival_time'] ? \Carbon\Carbon::parse($stop['arrival_time']) : null;
             $departure = $stop['departure_time'] ? \Carbon\Carbon::parse($stop['departure_time']) : null;
 
-            // Poin 1 & 4: Cek jam tiba vs jam berangkat di STASIUN YANG SAMA
+            //cek jam tiba vs jam berangkat
             if ($arrival && $departure && $arrival->greaterThanOrEqualTo($departure)) {
                 return response()->json([
                     'status' => 'error',
@@ -120,12 +117,12 @@ class AdminController extends Controller
                 ], 400);
             }
 
-            // Cek urutan antar stasiun (Estafet Waktu)
+            //cek urutan antar stasiun
             if ($index > 0) {
                 $prevStop = $stops[$index - 1];
                 $prevDeparture = $prevStop['departure_time'] ? \Carbon\Carbon::parse($prevStop['departure_time']) : null;
 
-                // Jam tiba di stasiun sekarang minimal harus 30 menit setelah jam berangkat stasiun sebelumnya
+                //jam tiba di stasiun sekarang minimal harus 30 menit setelah jam berangkat stasiun sebelumnya
                 if ($arrival && $prevDeparture && $arrival->diffInMinutes($prevDeparture, false) > -30) {
                     return response()->json([
                         'status' => 'error',
@@ -135,25 +132,23 @@ class AdminController extends Controller
             }
         }
 
-        // Poin 3: Proteksi jika ada ID stasiun yang kembar/sama di dalam rute perjalanan ini
+        //proteksi jika ada id stasiun yang kembar
         if (count($stationIds) !== count(array_unique($stationIds))) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Rute tidak valid! Ada stasiun yang duplikat/sama dimasukkan lebih dari sekali.'
+                'message' => 'rute tidak valid! Ada stasiun yang duplikat/sama dimasukkan lebih dari sekali.'
             ], 400);
         }
 
         try {
             DB::beginTransaction();
 
-            // 1. Simpan ke Tabel schedules
             $schedule = Schedule::create([
                 'train_id' => $request->train_id,
                 'journey_date' => $request->journey_date,
                 'status' => 'scheduled'
             ]);
 
-            // 2. Simpan ke Tabel route_stops
             foreach ($stops as $index => $stop) {
                 RouteStop::create([
                     'schedule_id' => $schedule->id,
@@ -181,11 +176,11 @@ class AdminController extends Controller
         }
     }
 
-    //GET SCHEDULE
-    // API untuk Mengambil Semua Data Jadwal beserta Rutenya
+
+    //get schedule
     public function getSchedules()
     {
-        // Mengambil jadwal, sekalian narik data kereta dan stasiun pemberhentiannya
+        // mengambil jadwal, sekalian narik data kereta dan stasiun pemberhentiannya
         $schedules = Schedule::with(['train', 'routeStops.station'])->get();
 
         return response()->json([
@@ -194,7 +189,7 @@ class AdminController extends Controller
         ]);
     }
 
-        // 4. API untuk Update Data Stasiun
+        //update stasiun
         public function updateStation(Request $request, $id)
         {
             $request->validate([
@@ -222,10 +217,9 @@ class AdminController extends Controller
             ]);
         }
 
-        // API untuk Mengubah Jadwal + Rute Transit Sekaligus
+        //mengubah jadwal + rute transit
         public function updateSchedule(Request $request, $id)
         {
-            // Validasi input
             $request->validate([
                 'train_id' => 'required|exists:trains,id',
                 'journey_date' => 'required|date|after_or_equal:today',
@@ -244,11 +238,9 @@ class AdminController extends Controller
             $stops = $request->route_stops;
             $stationIds = [];
 
-            // Validasi logika waktu dan duplikasi stasiun (Sama seperti storeSchedule)
             foreach ($stops as $index => $stop) {
                 $stationIds[] = $stop['station_id'];
 
-                // Validasi harga akumulasi harus naik secara ketat (strictly increasing)
                 if ($index > 0) {
                     $prevPrice = (float) ($stops[$index - 1]['price_from_start'] ?? 0);
                     $currentPrice = (float) ($stop['price_from_start'] ?? 0);
@@ -293,16 +285,13 @@ class AdminController extends Controller
             try {
                 DB::beginTransaction();
 
-                // 1. Update data utama jadwal
                 $schedule->update([
                     'train_id' => $request->train_id,
                     'journey_date' => $request->journey_date,
                 ]);
 
-                // 2. Hapus dulu rute transit yang lama biar ga bentrok
                 RouteStop::where('schedule_id', $id)->delete();
 
-                // 3. Masukkan rute transit baru hasil editan
                 foreach ($stops as $index => $stop) {
                     RouteStop::create([
                         'schedule_id' => $schedule->id,
@@ -330,7 +319,7 @@ class AdminController extends Controller
             }
         }
 
-        // API untuk Menghapus Jadwal Beserta Semua Rute Transitnya
+        //delete schedule
         public function deleteSchedule($id)
         {
             try {
@@ -341,10 +330,8 @@ class AdminController extends Controller
                     return response()->json(['status' => 'error', 'message' => 'Jadwal tidak ditemukan.'], 404);
                 }
 
-                // 1. Hapus dulu semua anak rutenya di tabel route_stops
                 RouteStop::where('schedule_id', $id)->delete();
 
-                // 2. Hapus bungkus utamanya di tabel schedules
                 $schedule->delete();
 
                 DB::commit();
@@ -363,7 +350,7 @@ class AdminController extends Controller
             }
         }
 
-        // 5. API untuk Hapus Data Stasiun
+        //delete station
         public function deleteStation($id)
         {
             $station = Station::find($id);
@@ -379,7 +366,7 @@ class AdminController extends Controller
             ]);
         }
 
-            // 6. API untuk Update Data Kereta
+        //update train
         public function updateTrain(Request $request,$id)
         {
             $request->validate([
@@ -409,7 +396,7 @@ class AdminController extends Controller
             ]);
         }
 
-        // 7. API untuk Hapus Data Kereta
+        //delete train
         public function deleteTrain($id)
         {
             $train = Train::find($id);
@@ -425,19 +412,17 @@ class AdminController extends Controller
             ]);
         }
 
-        // =========================================================================
-        // PROTECTIONS (ASURANSI)
-        // =========================================================================
-
+        //get proteksi 
         public function getProtection()
         {
-            $protections = \App\Models\Protection::orderBy('id', 'desc')->get();
+            $protections = \App\Models\Protection::orderBy('id', 'asc')->get();
             return response()->json([
                 'status' => 'success',
                 'data' => $protections
             ]);
         }
 
+        //store proteksi
         public function storeProtection(Request $request)
         {
             $request->validate([
@@ -461,6 +446,7 @@ class AdminController extends Controller
             ], 201);
         }
 
+        //update proteksi
         public function updateProtection(Request $request, $id)
         {
             $request->validate([
@@ -489,6 +475,7 @@ class AdminController extends Controller
             ]);
         }
 
+        //delete proteksi
         public function deleteProtection($id)
         {
             $protection = \App\Models\Protection::find($id);
@@ -504,19 +491,17 @@ class AdminController extends Controller
             ]);
         }
 
-        // =========================================================================
-        // PAYMENT METHODS (METODE PEMBAYARAN)
-        // =========================================================================
-
+        //payment method
         public function getPaymentMethod()
         {
-            $methods = \App\Models\PaymentMethod::orderBy('id', 'desc')->get();
+            $methods = \App\Models\PaymentMethod::orderBy('id', 'asc')->get();
             return response()->json([
                 'status' => 'success',
                 'data' => $methods
             ]);
         }
 
+        //store payment method
         public function storePaymentMethod(Request $request)
         {
             $request->validate([
@@ -528,7 +513,6 @@ class AdminController extends Controller
             ]);
 
             $code = $request->code ?: \Illuminate\Support\Str::slug($request->name, '_');
-            // Pastikan code unik jika auto-generated
             $baseCode = $code;
             $count = 1;
             while (\App\Models\PaymentMethod::where('code', $code)->exists()) {
@@ -550,6 +534,7 @@ class AdminController extends Controller
             ], 201);
         }
 
+        //update payment method
         public function updatePaymentMethod(Request $request, $id)
         {
             $request->validate([
@@ -578,6 +563,7 @@ class AdminController extends Controller
             ]);
         }
 
+        //delete payment method
         public function deletePaymentMethod($id)
         {
             $method = \App\Models\PaymentMethod::find($id);
@@ -593,10 +579,7 @@ class AdminController extends Controller
             ]);
         }
 
-        // =========================================================================
-        // HISTORY TRANSAKSI / BOOKING HISTORY
-        // =========================================================================
-
+        //history transaksi
         public function getBookingHistory()
         {
             $bookings = \App\Models\Booking::with([
@@ -614,15 +597,11 @@ class AdminController extends Controller
             ]);
         }
 
-        // =========================
-        // ADMIN MANAGEMENT
-        // =========================
-
-        // Menampilkan semua akun admin
+        //get all admin
         public function getAdmins()
         {
             $admins = \App\Models\User::where('role', 'admin')
-                ->orderBy('id', 'desc')
+                ->orderBy('id', 'asc')
                 ->get();
 
             return response()->json([
@@ -641,7 +620,7 @@ class AdminController extends Controller
                     'phone_number',
                     'gender'
                 )
-                ->orderBy('id', 'desc')
+                ->orderBy('id', 'asc')
                 ->get();
 
             return response()->json([
@@ -650,7 +629,7 @@ class AdminController extends Controller
             ]);
         }
 
-        // Menambahkan admin baru
+        //add admin baru
         public function storeAdmin(Request $request)
         {
             $request->validate([
@@ -673,7 +652,7 @@ class AdminController extends Controller
             ], 201);
         }
 
-        // Mengubah data admin
+        //update data admin
         public function updateAdmin(Request $request, $id)
         {
             $admin = \App\Models\User::findOrFail($id);
@@ -695,12 +674,11 @@ class AdminController extends Controller
             ]);
         }
 
-        // Menghapus admin
+        //delete admin
         public function deleteAdmin($id)
         {
             $admin = \App\Models\User::findOrFail($id);
 
-            // Jangan sampai admin menghapus dirinya sendiri
             if (auth()->id() == $admin->id) {
                 return response()->json([
                     'status' => 'error',

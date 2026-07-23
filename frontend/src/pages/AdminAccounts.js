@@ -167,12 +167,7 @@ function AdminAccounts() {
                                 required
                             />
                         </div>
-                        
 
-                        
-
-                        
-                        
                         </div><div className="flex gap-3 pt-4 border-t border-slate-100"><button type="submit" className="flex-1 py-2.5 bg-[#1800ad] hover:bg-[#11007a] text-white font-bold text-sm rounded-lg transition-colors">Simpan</button><button type="button" onClick={handleClose} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-lg transition-colors">Batal</button></div></form></Modal>
 
             

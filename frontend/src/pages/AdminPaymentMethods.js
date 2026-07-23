@@ -99,7 +99,7 @@ function AdminPaymentMethods() {    const { showPopup, showConfirm } = usePopup(
         }
     };
 
-    //toggle buka-tutup baris instruksi
+    //buka tutup baris instruksi
     const toggleRow = (id) => {
         if (expandedRow === id) {
             setExpandedRow(null);

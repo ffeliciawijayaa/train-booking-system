@@ -16,13 +16,13 @@ class RouteStop extends Model
         'price_from_start'
     ];
 
-    // Relasi: Titik rute ini milik jadwal mana?
+    //titik rute ini milik jadwal mana?
     public function schedule(): BelongsTo
     {
         return $this->belongsTo(Schedule::class);
     }
 
-    // Relasi: Titik rute ini merujuk ke stasiun mana?
+    //titik rute ini merujuk ke stasiun mana?
     public function station(): BelongsTo
     {
         return $this->belongsTo(Station::class);

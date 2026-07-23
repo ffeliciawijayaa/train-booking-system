@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('route_stops', function (Blueprint $table) {
             $table->id();
-            // Menghubungkan ke jadwal dan stasiun
+
             $table->foreignId('schedule_id')->constrained('schedules')->onDelete('cascade');
             $table->foreignId('station_id')->constrained('stations')->onDelete('cascade');
             
-            $table->integer('stop_order'); // Angka urutan (1, 2, 3, dst)
-            $table->dateTime('arrival_time')->nullable();   // Jam tiba (bisa kosong untuk stasiun pertama)
-            $table->dateTime('departure_time')->nullable(); // Jam berangkat (bisa kosong untuk stasiun terakhir)
-            $table->decimal('price_from_start', 10, 2);     // Patokan harga dari stasiun awal
+            $table->integer('stop_order'); 
+            $table->dateTime('arrival_time')->nullable();   
+            $table->dateTime('departure_time')->nullable(); 
+            $table->decimal('price_from_start', 10, 2);     
             $table->timestamps();
         });
     }

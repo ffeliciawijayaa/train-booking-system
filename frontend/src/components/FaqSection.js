@@ -56,9 +56,9 @@ const FaqSection = () => {
                     </p>
                 </div>
 
-                {/* FAQs Grid */}
+                {/*grid */}
                 <div className="lg:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 items-start">
-                    {/* Column 1 */}
+                
                     <div className="space-y-2">
                         {faqs.slice(0, 3).map((faq, index) => (
                             <div
@@ -89,7 +89,7 @@ const FaqSection = () => {
                         ))}
                     </div>
 
-                    {/* Column 2 */}
+               
                     <div className="space-y-2">
                         {faqs.slice(3, 6).map((faq, index) => (
                             <div

@@ -16,18 +16,16 @@ function Trains() {
     const [trainsList, setTrainsList] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
 
-    // STATE UNTUK EDIT DATA
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Fungsi pembantu untuk mengambil token admin
     const getAuthHeader = () => {
         const token = localStorage.getItem('token');
         return { headers: { Authorization: `Bearer ${token}` } };
     };
 
-    // 1. GET DATA KERETA
+    //get
     const fetchTrains = async () => {
         try {
             const response = await axios.get('http://127.0.0.1:8000/api/admin/trains', getAuthHeader());
@@ -51,14 +49,14 @@ function Trains() {
         fetchTrains();
     }, []);
 
-    // 2. SUBMIT FORM (TAMBAH / UPDATE)
+    //submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
 
         try {
             if (isEditing) {
-                // Mode Update
+                //update
                 const response = await axios.put(`http://127.0.0.1:8000/api/admin/trains/${editId}`, {
                     train_code: trainCode,
                     name: name,
@@ -68,7 +66,7 @@ function Trains() {
                 }, getAuthHeader());
                 setMessage(response.data.message);
             } else {
-                // Mode Tambah Baru
+                //Tambah Baru
                 const response = await axios.post('http://127.0.0.1:8000/api/admin/trains', {
                     train_code: trainCode,
                     name: name,
@@ -86,7 +84,7 @@ function Trains() {
         }
     };
 
-    // 3. FUNGSI EDIT DIKLIK
+    //edit
     const handleEditClick = (train) => {
         setIsEditing(true);
         setEditId(train.id);
@@ -120,7 +118,7 @@ function Trains() {
         setIsModalOpen(false);
     };
 
-    // 4. FUNGSI HAPUS DIKLIK
+    //delete
     const handleDeleteClick = async (id, trainName) => {
         if (await showConfirm(`Apakah Anda yakin ingin menghapus kereta "${trainName}"?`)) {
             try {
@@ -149,7 +147,6 @@ function Trains() {
 
     return (
         <div className="p-6 md:p-8 font-sans text-slate-800">
-            {/* Header Title */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-800">
@@ -169,14 +166,13 @@ function Trains() {
 
             <hr className="border-slate-200 mb-8" />
 
-            {/* Alert Message Toast di Bawah */}
+            {/*alert message toast */}
             {message && (
                 <div className="fixed bottom-6 right-6 z-50 p-4 bg-emerald-700 text-white border border-emerald-800 rounded-xl text-sm font-semibold shadow-xl transition-all">
                     {message}
                 </div>
             )}
 
-            {/* Modal Form */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={handleCancelEdit}
@@ -258,7 +254,7 @@ function Trains() {
                         </form>
             </Modal>
 
-            {/* Table */}
+            {/*tabel*/}
             <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-slate-800">Daftar Kereta</h3>

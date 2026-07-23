@@ -16,6 +16,13 @@ function PassengerSeatSelection() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
+    //admin tidak bisa pesan tiket
+    useEffect(() => {
+        if (localStorage.getItem('role') === 'admin') {
+            navigate('/admin/dashboard', { replace: true });
+        }
+    }, [navigate]);
+
     const boardOrder = searchParams.get('board_order');
     const alightOrder = searchParams.get('alight_order');
     const qtyAwal = parseInt(searchParams.get('qty')) || 1;
@@ -25,7 +32,7 @@ function PassengerSeatSelection() {
     const [currentCoach, setCurrentCoach] = useState(1);
     const [loading, setLoading] = useState(true);
 
-    // Simpan gender user yang login untuk coloring logic (masih berlaku untuk Penumpang 1)
+    //coloring logic 
     const [userGender, setUserGender] = useState('pria');
 
     const [passengers, setPassengers] = useState(
@@ -34,7 +41,7 @@ function PassengerSeatSelection() {
 
     const [activePassengerIndex, setActivePassengerIndex] = useState(0);
 
-    // --- Ambil data user yang login untuk Auto-fill Penumpang 1 ---
+    //ambil data user yang login untuk untuk Auto fill Penumpang 1
     useEffect(() => {
         const fetchUserProfile = async () => {
             const token = localStorage.getItem('token');
@@ -67,7 +74,7 @@ function PassengerSeatSelection() {
         fetchUserProfile();
     }, []);
 
-    // Ambil Detail Jadwal & Data Kursi
+    //ambil detail jadwal dan data kursi
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -160,7 +167,7 @@ function PassengerSeatSelection() {
         updated[activePassengerIndex].seat_number = seatCode;
         setPassengers(updated);
 
-        // Auto-advance ke penumpang dewasa berikutnya jika ada
+        //auto advance ke penumpang dewasa berikutnya jika ada
         let nextIndex = activePassengerIndex + 1;
         while (nextIndex < passengers.length && passengers[nextIndex].type === 'infant') {
             nextIndex++;
@@ -252,7 +259,7 @@ function PassengerSeatSelection() {
                     <h2 className="text-2xl font-black text-slate-900 mb-8 mt-8">Data Penumpang</h2>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* ================= BARIS KIRI: FORM DATA PENUMPANG ================= */}
+                        {/*form data penumpang*/}
                         <PassengerFormSection
                             passengers={passengers}
                             activePassengerIndex={activePassengerIndex}
@@ -264,7 +271,7 @@ function PassengerSeatSelection() {
                             onSubmit={handleCheckout}
                         />
 
-                        {/* ================= BARIS KANAN: DENAH KURSI DINAMIS ================= */}
+                        {/*denah kursi*/}
                         <SeatMapGrid
                             scheduleDetail={scheduleDetail}
                             formattedJourneyDate={formattedJourneyDate}

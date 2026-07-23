@@ -34,7 +34,7 @@ function UserDashboard() {
     const [hasSearched, setHasSearched] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Load daftar stasiun untuk dropdown pencarian:
+    //load daftar stasiun untuk dropdown pencarian
     useEffect(() => {
         axios
             .get("http://127.0.0.1:8000/api/user/stations")
@@ -119,7 +119,7 @@ function UserDashboard() {
 
     return (
         <div className="font-sans text-slate-800 bg-slate-50 min-h-screen pb-0">
-            {/* HERO SECTION */}
+            {/*hero section*/}
             <div className="relative w-full h-screen bg-slate-900">
                 <img
                     src="/images/train-hero.jpg"
@@ -128,10 +128,10 @@ function UserDashboard() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-[#0a1128] via-[#0a1128]/80 to-transparent"></div>
 
-                {/* Navbar Overlay */}
+                {/*navabar overlay*/}
                 <UserNavbar variant="transparent" />
 
-                {/* Hero Text */}
+                {/*hero text*/}
                 <div className="relative z-10 flex flex-col items-start justify-start pt-24 md:justify-center md:pt-0 h-full text-left px-6 md:px-28 lg:px-32 max-w-6xl">
                     <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-tight mb-2 md:mb-5 drop-shadow-lg">
                         Jelajahi Nusantara <br className="hidden md:block" /> Dengan
@@ -211,7 +211,7 @@ function UserDashboard() {
                             id="search-results"
                             className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                         >
-                            {/* Search Summary Bar */}
+
                             {originStation && destinationStation && (
                                 <div className="flex items-center gap-4 mb-10 bg-white py-3 px-6 rounded-md shadow-sm border border-slate-100 w-max">
                                     <div className="text-lg font-bold text-[#0a1128]">
@@ -441,7 +441,6 @@ function UserDashboard() {
                 )}
             </div>
 
-            {/* FAQ SECTION */}
             {!hasSearched && <FaqSection />}
 
             {!hasSearched && (

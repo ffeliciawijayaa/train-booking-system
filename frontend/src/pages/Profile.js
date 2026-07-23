@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Modal from '../components/Modal';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { UserRound } from 'lucide-react';
@@ -19,12 +18,11 @@ function Profile() {
         birth_date: ''
     });
 
-    // Backup data for canceling edit
+  
     const [originalData, setOriginalData] = useState(null);
-
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [isEditing, setIsEditing] = useState(false); // Controls the modal
+    const [isEditing, setIsEditing] = useState(false); 
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -63,7 +61,7 @@ function Profile() {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        // Khusus NIK, hanya boleh angka dan maksimal 16 digit
+        //NIK hanya boleh angka dan maksimal 16 digit
         if (name === 'nik') {
             const onlyNums = value.replace(/[^0-9]/g, '');
             if (onlyNums.length <= 16) {
@@ -90,7 +88,7 @@ function Profile() {
             });
             showPopup(res.data.message || 'Profil berhasil diperbarui!');
             setOriginalData(formData);
-            setIsEditing(false); // Close modal on success
+            setIsEditing(false); 
         } catch (err) {
             console.error("Gagal mengupdate profil", err);
             showPopup(err.response?.data?.message || 'Terjadi kesalahan saat menyimpan profil.');
@@ -105,9 +103,9 @@ function Profile() {
 
             <div className="flex-1 pt-32 pb-24 w-full">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-28 lg:px-32 space-y-8">
-                    {/* PAGE TITLE */}
+                 
                     <div className="flex justify-between items-center mb-4">
-                        <h1 className="text-2xl font-black text-[#1800ad]">Profil Saya</h1>
+                        <h1 className="text-2xl font-black text-blue-900">Profil Saya</h1>
 
                     </div>
 
@@ -115,27 +113,27 @@ function Profile() {
                         <div className="text-center py-10 text-slate-500 animate-pulse font-semibold">Memuat profil...</div>
                     ) : (
                         <>
-                            {/* HEADER CARD */}
+                            {/*header card*/}
                             <div className="bg-white rounded shadow-sm border border-slate-200 p-6 flex items-center gap-6">
                                 <div className={`w-24 h-24 rounded-full flex items-center justify-center border-4 flex-shrink-0 ${formData.gender === 'wanita'
                                         ? 'bg-pink-100 border-pink-50 text-pink-500'
-                                        : 'bg-[#1800ad]/10 border-blue-50 text-[#1800ad]'
+                                        : 'bg-blue-100 border-blue-50 text-blue-500'
                                     }`}>
                                     <UserRound size={48} strokeWidth={2} />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold text-[#1800ad]">{formData.name || 'User'}</h2>
+                                    <h2 className="text-xl font-bold text-blue-900">{formData.name || 'User'}</h2>
                                     <p className="text-slate-500 mt-1">{formData.email}</p>
                                 </div>
                             </div>
 
-                            {/* PERSONAL INFORMATION CARD */}
+                            {/*personal info card*/}
                             <div className="bg-white rounded shadow-sm border border-slate-200 p-8">
                                 <div className="flex justify-between items-center mb-8">
-                                    <h2 className="text-xl font-bold text-[#1800ad]">Informasi Pribadi</h2>
+                                    <h2 className="text-xl font-bold text-blue-900">Informasi Pribadi</h2>
                                     <button
                                         onClick={() => setIsEditing(true)}
-                                        className="bg-[#1800ad] hover:bg-[#11007a] text-white px-5 py-2 rounded font-bold text-sm shadow-md transition-colors flex items-center gap-2"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-bold text-sm shadow-md transition-colors flex items-center gap-2"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                         Ubah Data
@@ -169,7 +167,7 @@ function Profile() {
                                     </div>
                                     <div>
                                         <div className="text-sm font-semibold text-slate-400 mb-1">Jenis Kelamin</div>
-                                        <div className={`font-bold capitalize ${formData.gender === 'wanita' ? 'text-pink-500' : formData.gender === 'pria' ? 'text-[#1800ad]' : 'text-slate-800'}`}>
+                                        <div className={`font-bold capitalize ${formData.gender === 'wanita' ? 'text-pink-500' : formData.gender === 'pria' ? 'text-blue-500' : 'text-slate-800'}`}>
                                             {formData.gender || '-'}
                                         </div>
                                     </div>
@@ -182,14 +180,17 @@ function Profile() {
 
             <Footer />
 
-            {/* EDIT MODAL */}
-            <Modal
-                isOpen={isEditing}
-                onClose={handleCancel}
-                title="Edit Informasi Pribadi"
-                maxWidth="max-w-lg"
-            >
-                        <div className="max-h-[70vh] overflow-y-auto">
+            {/*edit modal*/}
+            {isEditing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+                    <div className="bg-white rounded shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-6 flex justify-between items-center border-b border-slate-100">
+                            <h3 className="text-xl font-bold text-blue-900">Edit Informasi Pribadi</h3>
+                            <button onClick={handleCancel} className="text-slate-400 hover:text-slate-600 transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <div className="p-6 max-h-[70vh] overflow-y-auto">
                             <form onSubmit={handleSubmit} id="editProfileForm" className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
@@ -199,7 +200,7 @@ function Profile() {
                                         value={formData.name}
                                         onChange={handleChange}
                                         required
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/20 focus:border-[#1800ad] transition-colors"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                                     />
                                 </div>
                                 <div>
@@ -213,7 +214,7 @@ function Profile() {
                                         maxLength="16"
                                         pattern="\d{16}"
                                         title="NIK harus tepat 16 digit angka"
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/20 focus:border-[#1800ad] transition-colors"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                                     />
                                 </div>
                                 <div>
@@ -224,7 +225,7 @@ function Profile() {
                                         value={formData.email}
                                         onChange={handleChange}
                                         required
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/20 focus:border-[#1800ad] transition-colors"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                                     />
                                 </div>
                                 <div>
@@ -234,7 +235,7 @@ function Profile() {
                                         name="phone_number"
                                         value={formData.phone_number}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/20 focus:border-[#1800ad] transition-colors"
+                                        className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                                     />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -245,7 +246,7 @@ function Profile() {
                                             name="birth_date"
                                             value={formData.birth_date}
                                             onChange={handleChange}
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/20 focus:border-[#1800ad] transition-colors"
+                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
                                         />
                                     </div>
                                     <div>
@@ -255,7 +256,7 @@ function Profile() {
                                                 name="gender"
                                                 value={formData.gender}
                                                 onChange={handleChange}
-                                                className="appearance-none w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/20 focus:border-[#1800ad] transition-colors bg-white pr-10"
+                                                className="appearance-none w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors bg-white pr-10"
                                             >
                                                 <option value="">Pilih...</option>
                                                 <option value="pria">Pria</option>
@@ -284,12 +285,14 @@ function Profile() {
                                 type="submit"
                                 form="editProfileForm"
                                 disabled={saving}
-                                className={`px-5 py-2 rounded text-white font-bold shadow-md transition-colors ${saving ? 'bg-blue-400 cursor-not-allowed' : 'bg-[#1800ad] hover:bg-[#11007a]'}`}
+                                className={`px-5 py-2 rounded text-white font-bold shadow-md transition-colors ${saving ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                             >
                                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                             </button>
                         </div>
-            </Modal>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

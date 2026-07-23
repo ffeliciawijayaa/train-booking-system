@@ -244,7 +244,7 @@ function Schedules() {
 
             <hr className="border-slate-200 mb-8" />
 
-            {/* Alert Message Toast di Bawah */}
+            {/*alert message toast*/}
             {message && (
                 <div className={`fixed bottom-6 right-6 z-50 p-4 rounded-xl text-sm font-semibold text-white shadow-xl transition-all border ${isMessageError
                     ? 'bg-red-600 border-red-700'
@@ -263,127 +263,127 @@ function Schedules() {
                 )}
 
                 <form onSubmit={handleSubmit}>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Pilih Kereta:</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Pilih Kereta:</label>
+                            <select
+                                value={selectedTrain}
+                                onChange={(e) => setSelectedTrain(e.target.value)}
+                                required
+                                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/100/20 focus:border-[#1800ad]/100 transition-all"
+                            >
+                                <option value="">-- Pilih Kereta --</option>
+                                {trains.filter(t => t.is_active === 1 || t.is_active === true).map(t => <option key={t.id} value={t.id}>{t.name} ({t.train_code})</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-2">Tanggal Perjalanan:</label>
+                            <input
+                                type="date"
+                                min={todayDate}
+                                value={journeyDate}
+                                onChange={(e) => setJourneyDate(e.target.value)}
+                                required
+                                className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/100/20 focus:border-[#1800ad]/100 transition-all"
+                            />
+                        </div>
+                    </div>
+
+                    <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">
+                        Daftar Stasiun Pemberhentian
+                    </h3>
+
+                    <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
+                        {routeStops.map((stop, index) => (
+                            <div key={index} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 items-end bg-slate-50 p-4 border border-slate-200 rounded-lg shadow-sm">
+                                <div className="md:col-span-4">
+                                    <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
+                                        Urutan Ke-{index + 1} ({index === 0 ? "Awal" : index === routeStops.length - 1 ? "Akhir" : "Transit"})
+                                    </label>
                                     <select
-                                        value={selectedTrain}
-                                        onChange={(e) => setSelectedTrain(e.target.value)}
+                                        value={stop.station_id}
+                                        onChange={(e) => handleStopChange(index, 'station_id', e.target.value)}
                                         required
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/100/20 focus:border-[#1800ad]/100 transition-all"
+                                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
                                     >
-                                        <option value="">-- Pilih Kereta --</option>
-                                        {trains.filter(t => t.is_active === 1 || t.is_active === true).map(t => <option key={t.id} value={t.id}>{t.name} ({t.train_code})</option>)}
+                                        <option value="">-- Pilih Stasiun --</option>
+                                        {stations.filter(s => s.is_active === 1 || s.is_active === true).map(s => <option key={s.id} value={s.id}>{s.name} ({s.station_code})</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Tanggal Perjalanan:</label>
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-medium text-slate-600 mb-1.5">Jam Tiba:</label>
                                     <input
-                                        type="date"
-                                        min={todayDate}
-                                        value={journeyDate}
-                                        onChange={(e) => setJourneyDate(e.target.value)}
-                                        required
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#1800ad]/100/20 focus:border-[#1800ad]/100 transition-all"
+                                        type="time"
+                                        value={stop.arrival_time}
+                                        onChange={(e) => handleStopChange(index, 'arrival_time', e.target.value)}
+                                        disabled={index === 0}
+                                        required={index !== 0}
+                                        className="w-full px-3 py-2 bg-white disabled:bg-slate-200 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
                                     />
                                 </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-medium text-slate-600 mb-1.5">Jam Berangkat:</label>
+                                    <input
+                                        type="time"
+                                        value={stop.departure_time}
+                                        onChange={(e) => handleStopChange(index, 'departure_time', e.target.value)}
+                                        disabled={index === routeStops.length - 1}
+                                        required={index !== routeStops.length - 1}
+                                        className="w-full px-3 py-2 bg-white disabled:bg-slate-200 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
+                                    />
+                                </div>
+                                <div className="md:col-span-3">
+                                    <label className="block text-xs font-medium text-slate-600 mb-1.5">Harga Dari Awal (Rp):</label>
+                                    <input
+                                        type="text"
+                                        value={stop.price_from_start}
+                                        onChange={(e) => handleStopChange(index, 'price_from_start', e.target.value)}
+                                        required
+                                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
+                                    />
+                                </div>
+                                <div className="md:col-span-1 flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeStopRow(index)}
+                                        className="w-full sm:w-auto px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm rounded-lg transition-colors duration-150"
+                                    >
+                                        Hapus
+                                    </button>
+                                </div>
                             </div>
+                        ))}
+                    </div>
 
-                            <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">
-                                Daftar Stasiun Pemberhentian
-                            </h3>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            onClick={addStopRow}
+                            className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold text-sm rounded-lg transition-colors"
+                        >
+                            + Tambah Stasiun Transit
+                        </button>
+                    </div>
 
-                            <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-                                {routeStops.map((stop, index) => (
-                                    <div key={index} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 items-end bg-slate-50 p-4 border border-slate-200 rounded-lg shadow-sm">
-                                        <div className="md:col-span-4">
-                                            <label className="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">
-                                                Urutan Ke-{index + 1} ({index === 0 ? "Awal" : index === routeStops.length - 1 ? "Akhir" : "Transit"})
-                                            </label>
-                                            <select
-                                                value={stop.station_id}
-                                                onChange={(e) => handleStopChange(index, 'station_id', e.target.value)}
-                                                required
-                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
-                                            >
-                                                <option value="">-- Pilih Stasiun --</option>
-                                                {stations.filter(s => s.is_active === 1 || s.is_active === true).map(s => <option key={s.id} value={s.id}>{s.name} ({s.station_code})</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Jam Tiba:</label>
-                                            <input
-                                                type="time"
-                                                value={stop.arrival_time}
-                                                onChange={(e) => handleStopChange(index, 'arrival_time', e.target.value)}
-                                                disabled={index === 0}
-                                                required={index !== 0}
-                                                className="w-full px-3 py-2 bg-white disabled:bg-slate-200 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Jam Berangkat:</label>
-                                            <input
-                                                type="time"
-                                                value={stop.departure_time}
-                                                onChange={(e) => handleStopChange(index, 'departure_time', e.target.value)}
-                                                disabled={index === routeStops.length - 1}
-                                                required={index !== routeStops.length - 1}
-                                                className="w-full px-3 py-2 bg-white disabled:bg-slate-200 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-3">
-                                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Harga Dari Awal (Rp):</label>
-                                            <input
-                                                type="text"
-                                                value={stop.price_from_start}
-                                                onChange={(e) => handleStopChange(index, 'price_from_start', e.target.value)}
-                                                required
-                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-[#1800ad]/100"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-1 flex justify-end">
-                                            <button
-                                                type="button"
-                                                onClick={() => removeStopRow(index)}
-                                                className="w-full sm:w-auto px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-sm rounded-lg transition-colors duration-150"
-                                            >
-                                                Hapus
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="mt-6 flex flex-wrap gap-3">
-                                <button
-                                    type="button"
-                                    onClick={addStopRow}
-                                    className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold text-sm rounded-lg transition-colors"
-                                >
-                                    + Tambah Stasiun Transit
-                                </button>
-                            </div>
-
-                            <div className="mt-6 pt-6 border-t border-slate-100 flex gap-3">
-                                <button
-                                    type="submit"
-                                    className="flex-1 py-2.5 font-bold text-sm text-white rounded-lg shadow-sm transition-colors bg-[#1800ad] hover:bg-[#11007a]"
-                                >
-                                    Simpan
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-lg transition-colors"
-                                >
-                                    Batal
-                                </button>
-                            </div>
-                        </form>
+                    <div className="mt-6 pt-6 border-t border-slate-100 flex gap-3">
+                        <button
+                            type="submit"
+                            className="flex-1 py-2.5 font-bold text-sm text-white rounded-lg shadow-sm transition-colors bg-[#1800ad] hover:bg-[#11007a]"
+                        >
+                            Simpan
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-lg transition-colors"
+                        >
+                            Batal
+                        </button>
+                    </div>
+                </form>
             </Modal>
 
-            {/* Table */}
+            {/*tabel*/}
             <div className="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden mb-12">
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-slate-800">Daftar Jadwal Perjalanan</h3>

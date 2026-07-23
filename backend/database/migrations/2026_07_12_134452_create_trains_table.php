@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('trains', function (Blueprint $table) {
             $table->id();
 
-            $table->string('train_code')->unique(); // Misal: K-01
-            $table->string('name');                 // Misal: Argo Bromo Anggrek
+            $table->string('train_code')->unique(); 
+            $table->string('name');                 
             $table->enum('class', ['executive', 'business', 'economy']);
-            $table->integer('total_coaches');       // Misal: 8 (Gerbong)
+            $table->integer('total_coaches');      
             $table->timestamps();
         });
     }

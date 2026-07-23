@@ -63,11 +63,8 @@ class TicketController extends Controller
 
     public function getOccupiedSeats(Request $request, $scheduleId)
     {
-        // Tangkap order penggaris dari stasiun naik dan turun si user
         $userBoardOrder = $request->query('board_order');
         $userAlightOrder = $request->query('alight_order');
-
-        // Cari kursi yang bentrok menggunakan SeatAvailabilityService
         $occupiedSeats = SeatAvailabilityService::getOccupiedSeats($scheduleId, $userBoardOrder, $userAlightOrder);
 
         return response()->json([
@@ -85,7 +82,6 @@ class TicketController extends Controller
         $depStop = $schedule->routeStops->firstWhere('stop_order', $boardOrder);
         $arrStop = $schedule->routeStops->firstWhere('stop_order', $alightOrder);
 
-        // Hitung harga parsial menggunakan FareService
         $price = FareService::calculateFare($depStop, $arrStop);
 
         return response()->json([
@@ -106,7 +102,7 @@ class TicketController extends Controller
                 'arrival_station_code' => $arrStop && $arrStop->station ? $arrStop->station->station_code : null,
                 'departure_time' => $depStop ? $depStop->departure_time : null,
                 'arrival_time' => $arrStop ? $arrStop->arrival_time : null,
-                'price' => $price, // <--- Data harga sekarang ikut dikirim
+                'price' => $price, 
             ]
         ]);
     }
